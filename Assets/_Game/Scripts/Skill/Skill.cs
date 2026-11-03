@@ -51,15 +51,17 @@ public abstract class ActiveSkill : Skill
     public float CooldownRemaining => Mathf.Max(0f, data.cooldown - (Time.time - lastUseTime));
     public bool IsReady => CooldownRemaining <= 0f;
 
-    public void TryActivate(Player player)
+    // คืน true ถ้าใช้สำเร็จ (Player จะเล่นท่าสกิล)
+    public bool TryActivate(Player player)
     {
         if (!IsReady)
         {
             Debug.Log($"{Name} cooldown {CooldownRemaining:0.0}s");
-            return;
+            return false;
         }
         lastUseTime = Time.time;
         Activate(player);
+        return true;
     }
 
     // แต่ละสกิลเขียนผลเอง

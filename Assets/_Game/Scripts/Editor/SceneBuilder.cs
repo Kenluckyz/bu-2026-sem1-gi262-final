@@ -20,12 +20,8 @@ public static class SceneBuilder
         ground.name = "Ground";
         ground.transform.localScale = new Vector3(3f, 1f, 3f);
 
-        GameObject player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        player.name = "Player";
-        player.transform.position = new Vector3(0f, 1f, 0f);
-        Object.DestroyImmediate(player.GetComponent<CapsuleCollider>());
-        Player playerScript = player.AddComponent<Player>();
-        playerScript.characterName = "Hero";
+        GameObject player = BuildBoatPlayer();
+        Player playerScript = player.GetComponent<Player>();
 
         // สกิลตัวอย่าง: 1 = SpinPunch, 2 = FireStorm, 3 = PowerUp (Passive)
         SkillData spin = GetOrCreateSkill("SpinPunch", SkillKind.Active, SkillEffect.SpinPunch, 15f, 5f, 3f, 2.5f, 0, StatType.Damage, true);
@@ -71,6 +67,102 @@ public static class SceneBuilder
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         Debug.Log("Test_Player scene built");
+    }
+
+    // Player = กล่องเปล่าที่มี CharacterController + Player.cs, โมเดล Boat เป็นลูก (ถ้าไม่มีโมเดลใช้แคปซูลแทน)
+    private static GameObject BuildBoatPlayer()
+    {
+        const string modelPath = "Assets/_Game/Art/Boat/Boat.fbx";
+        foreach (string p in new[] { modelPath, "Assets/_Game/Art/Boat/Anims/Idle.fbx", "Assets/_Game/Art/Boat/Anims/Run.fbx",
+                     "Assets/_Game/Art/Boat/Anims/Punch.fbx", "Assets/_Game/Art/Boat/Anims/HookPunch.fbx",
+                     "Assets/_Game/Art/Boat/Anims/Hit.fbx", "Assets/_Game/Art/Boat/Anims/Death.fbx", "Assets/_Game/Art/Boat/Anims/Uppercut.fbx" })
+        {
+            ModelImporter mi = AssetImporter.GetAtPath(p) as ModelImporter;
+            if (mi != null && mi.animationType != ModelImporterAnimationType.Human)
+            {
+                AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceUpdate); // ให้ BoatImportSettings ตั้งเป็น Humanoid
+            }
+        }
+
+        GameObject player = new GameObject("Player");
+        CharacterController cc = player.AddComponent<CharacterController>();
+        cc.height = 1.1f;
+        cc.radius = 0.3f;
+        cc.center = new Vector3(0f, 0.57f, 0f);
+        Player playerScript = player.AddComponent<Player>();
+        playerScript.characterName = "Boat";
+
+        GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+        if (modelAsset == null)
+        {
+            GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            Object.DestroyImmediate(capsule.GetComponent<CapsuleCollider>());
+            capsule.transform.SetParent(player.transform, false);
+            capsule.transform.localPosition = new Vector3(0f, 1f, 0f);
+            return player;
+        }
+
+        GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset);
+        model.name = "BoatModel";
+        model.transform.SetParent(player.transform, false);
+        Animator anim = model.GetComponent<Animator>();
+        if (anim == null) anim = model.AddComponent<Animator>();
+        anim.runtimeAnimatorController = BoatAnimatorBuilder.Build();
+        anim.applyRootMotion = false;
+
+        // ใส่สี: FBX ฝังรูปไว้แต่ Unity ไม่ดึงออกมา เลยทำ Material เองจาก Boat_BaseColor.png
+        Material boatMat = GetOrCreateBoatMaterial();
+        foreach (Renderer r in model.GetComponentsInChildren<Renderer>())
+        {
+            r.sharedMaterial = boatMat;
+        }
+
+        // ปรับขนาดให้สูง targetHeight เมตร (หน่วยจาก Blender ทำให้ตัวเล็ก)
+        const float targetHeight = 1.5f;
+        Bounds b = new Bounds(model.transform.position, Vector3.zero);
+        foreach (Renderer r in model.GetComponentsInChildren<Renderer>()) b.Encapsulate(r.bounds);
+        if (b.size.y > 0.01f)
+        {
+            model.transform.localScale *= targetHeight / b.size.y;
+        }
+        cc.height = targetHeight * 0.95f;
+        cc.center = new Vector3(0f, cc.height / 2f, 0f);
+
+        // ให้หน้าโมเดลหันไปทาง +Z เท่ากับ Player: ถ้ามือซ้ายอยู่ฝั่ง +X แปลว่าหันกลับด้าน
+        Transform leftHand = anim.isHuman ? anim.GetBoneTransform(HumanBodyBones.LeftHand) : null;
+        if (leftHand != null && player.transform.InverseTransformPoint(leftHand.position).x > 0f)
+        {
+            model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+        }
+        if (!anim.isHuman) Debug.LogWarning("Boat ยังไม่เป็น Humanoid — เช็ก Rig ของ Boat.fbx");
+
+        var so = new SerializedObject(playerScript);
+        so.FindProperty("animator").objectReferenceValue = anim;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return player;
+    }
+
+    private static Material GetOrCreateBoatMaterial()
+    {
+        const string texPath = "Assets/_Game/Art/Boat/Boat_BaseColor.png";
+        const string matPath = "Assets/_Game/Art/Boat/Boat.mat";
+        TextureImporter ti = AssetImporter.GetAtPath(texPath) as TextureImporter;
+        if (ti != null && ti.maxTextureSize != 2048)
+        {
+            ti.maxTextureSize = 2048; // 4K หนักเกินสำหรับเครื่องเพื่อน
+            ti.SaveAndReimport();
+        }
+        Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+        if (mat == null)
+        {
+            mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            AssetDatabase.CreateAsset(mat, matPath);
+        }
+        mat.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(texPath));
+        mat.SetColor("_BaseColor", Color.white);
+        mat.SetFloat("_Smoothness", 0.15f);
+        EditorUtility.SetDirty(mat);
+        return mat;
     }
 
     // Canvas มุมซ้ายบน: Lv. / แถบเลือดแดง / แถบ EXP ฟ้า

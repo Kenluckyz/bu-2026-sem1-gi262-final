@@ -11,6 +11,9 @@ public class Player : Character
     [SerializeField] private float turnSpeed = 720f; // องศาต่อวินาที
     [SerializeField] private float gravity = -20f;
 
+    [Header("Model")]
+    [SerializeField] private Animator animator; // Animator ของโมเดล Boat (ลูกของ Player)
+
     [Header("Stats")]
     [SerializeField] private PlayerStats stats = new PlayerStats();
     public PlayerStats Stats => stats;
@@ -18,9 +21,19 @@ public class Player : Character
     [Header("Attack")]
     [SerializeField] private float attackRange = 1.5f;   // ระยะฟันข้างหน้า
     [SerializeField] private float attackRadius = 1.2f;  // ความกว้างของวงฟัน
-    // จังหวะฟัน: ง้างช้า -> ฟันเร็ว (โดนตรงนี้) -> ค้าง -> คืนท่า
-    [SerializeField] private float windUpTime = 0.15f;
-    [SerializeField] private float recoverTime = 0.25f;
+    [SerializeField] private float windUpTime = 0.15f;   // ใช้ตอนไม่มีโมเดล (แคปซูล)
+
+    [Header("Combo 1-2-3")]
+    [SerializeField] private float comboResetTime = 0.5f;                      // เว้นนานกว่านี้ คอมโบเริ่มท่า 1 ใหม่
+    [SerializeField] private float[] comboDamage = { 1f, 1f, 1.5f };          // ท่า 3 แรงกว่า
+    // จังหวะเป็นสัดส่วนของความยาวท่า: ง้าง -> หมัดโดน (hitPoint) -> ค้าง -> ต่อท่าถัดไปได้ (chainPoint)
+    [SerializeField] private float[] hitPoint = { 0.35f, 0.4f, 0.45f };
+    [SerializeField] private float[] chainPoint = { 0.65f, 0.65f, 0.85f };    // ท่า 3 ค้างนานกว่า
+    [SerializeField] private float clickBufferTime = 0.6f;                     // คลิกที่เก่าเกินนี้ทิ้ง
+    // คิวคลิกที่รอต่อย (Queue แบบ autoMoveQueue ใน ActionHistoryManager week09) เก็บเวลาที่คลิก
+    private Queue<float> comboQueue = new Queue<float>();
+    private int comboStep;          // 0 = ท่า 1, 1 = ท่า 2, 2 = ท่า 3
+    private float lastComboEndTime = -99f;
 
     private CharacterController controller;
     private InputAction moveAction;
@@ -47,6 +60,7 @@ public class Player : Character
         if (Time.time - lastHurtTime < invincibleTime) return;
         lastHurtTime = Time.time;
         base.TakeDamage(damage);
+        if (isAlive && animator != null) animator.SetTrigger("Hit");
     }
 
     public override void SetUP()
@@ -76,24 +90,62 @@ public class Player : Character
         Vector2 input = isAttacking ? Vector2.zero : moveAction.ReadValue<Vector2>();
         Move(input);
 
-        if (attackAction != null && attackAction.triggered && !isAttacking)
+        // 1. คลิกแล้วเข้าคิว (จำไว้สูงสุด 2 ครั้ง กดรัวระหว่างต่อยก็ไม่หาย)
+        if (attackAction != null && attackAction.triggered && comboQueue.Count < 2)
         {
-            StartCoroutine(AttackRoutine());
+            comboQueue.Enqueue(Time.time);
+        }
+        // 2. ต่อยเสร็จแล้ว ดึงคลิกถัดไปออกจากคิว
+        if (!isAttacking && comboQueue.Count > 0)
+        {
+            float clickTime = comboQueue.Dequeue();
+            if (Time.time - clickTime <= clickBufferTime)
+            {
+                StartCoroutine(ComboAttack());
+            }
         }
         UpdateSkillInput();
     }
 
-    private IEnumerator AttackRoutine()
+    // ต่อย 1 ท่าในคอมโบ: ง้างช้า -> ต่อยเร็ว (โดนตรงนี้) -> ค้าง -> คืนท่า
+    private IEnumerator ComboAttack()
     {
+        if (Time.time - lastComboEndTime > comboResetTime)
+        {
+            comboStep = 0; // เว้นนาน เริ่มคอมโบใหม่
+        }
+        int step = comboStep;
         isAttacking = true;
-        yield return new WaitForSeconds(windUpTime);
-        Attack();
-        yield return new WaitForSeconds(recoverTime);
+
+        // ความยาวท่า (วินาที) — ไม่มีโมเดลใช้ค่าประมาณ
+        float length = windUpTime / hitPoint[step];
+        if (animator != null)
+        {
+            // สั่งเล่นท่าตรง ๆ ตั้งแต่ต้น ไม่ผ่าน Trigger จะได้ไม่รีเซ็ตกลางท่าเวลาคลิกรัว
+            string stateName = "Combo" + (step + 1);
+            animator.CrossFadeInFixedTime(stateName, 0.05f, 0, 0f);
+            yield return null; // รอ 1 เฟรมให้ Animator เริ่มท่า
+            AnimatorStateInfo info = animator.GetNextAnimatorStateInfo(0);
+            if (!info.IsName(stateName)) info = animator.GetCurrentAnimatorStateInfo(0);
+            if (info.length > 0.05f) length = info.length;
+        }
+
+        yield return new WaitForSeconds(length * hitPoint[step]);
+        Attack(comboDamage[step]);
+        yield return new WaitForSeconds(length * (chainPoint[step] - hitPoint[step]));
+
+        comboStep = (step + 1) % 3; // 1 -> 2 -> 3 -> 1
+        lastComboEndTime = Time.time;
         isAttacking = false;
     }
 
-    // หา Character ทุกตัวในวงหน้าผู้เล่น แล้วสั่ง TakeDamage (Polymorphism: ศัตรูแต่ละแบบรับดาเมจต่างกันได้)
     public void Attack()
+    {
+        Attack(1f);
+    }
+
+    // หา Character ทุกตัวในวงหน้าผู้เล่น แล้วสั่ง TakeDamage (Polymorphism: ศัตรูแต่ละแบบรับดาเมจต่างกันได้)
+    public void Attack(float damageMultiplier)
     {
         Vector3 center = transform.position + transform.forward * attackRange;
         Collider[] hits = Physics.OverlapSphere(center, attackRadius);
@@ -102,7 +154,7 @@ public class Player : Character
             Character target = hits[i].GetComponent<Character>();
             if (target != null && target != this && target.IsAlive)
             {
-                DealDamage(target, stats.Damage);
+                DealDamage(target, stats.Damage * damageMultiplier);
             }
         }
     }
@@ -215,9 +267,9 @@ public class Player : Character
     private void UseSkillSlot(int index)
     {
         if (index >= skillSlots.Count) return;
-        if (skillSlots[index] is ActiveSkill active)
+        if (skillSlots[index] is ActiveSkill active && active.TryActivate(this))
         {
-            active.TryActivate(this);
+            if (animator != null) animator.SetTrigger("Skill");
         }
     }
 
@@ -261,6 +313,8 @@ public class Player : Character
         if (controller.isGrounded && verticalVelocity < 0f) verticalVelocity = -2f;
         verticalVelocity += gravity * Time.deltaTime;
 
+        if (animator != null) animator.SetFloat("Speed", direction.magnitude);
+
         Vector3 velocity = direction * moveSpeed;
         velocity.y = verticalVelocity;
         controller.Move(velocity * Time.deltaTime);
@@ -269,7 +323,8 @@ public class Player : Character
     protected override void Die()
     {
         base.Die();
-        // ล้มลงให้เห็นว่าตาย ภายหลัง GameManager จะฟัง OnDied แล้วเปิดหน้า Game Over
-        transform.rotation = Quaternion.Euler(90f, transform.eulerAngles.y, 0f);
+        // เล่นท่าตาย (ถ้ายังไม่มีโมเดลก็ล้มแคปซูลแทน) ภายหลัง GameManager จะฟัง OnDied แล้วเปิดหน้า Game Over
+        if (animator != null) animator.SetBool("Dead", true);
+        else transform.rotation = Quaternion.Euler(90f, transform.eulerAngles.y, 0f);
     }
 }
