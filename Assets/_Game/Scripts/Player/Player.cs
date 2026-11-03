@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -27,6 +28,16 @@ public class Player : Character
     private float verticalVelocity;
     private bool isAttacking;
 
+    [Header("Skills")]
+    [SerializeField] private List<SkillData> startingSkills = new List<SkillData>(); // สกิลที่มีตั้งแต่เริ่ม (ไว้ทดสอบ)
+    // ชื่อสกิล -> สกิล (Dictionary แบบ Inventory ใน week04)
+    private Dictionary<string, Skill> skills = new Dictionary<string, Skill>();
+    // ช่องสกิลเรียงตามลำดับที่ได้ (ช่อง 1, 2, 3 = กดปุ่ม 1, 2, 3)
+    private List<Skill> skillSlots = new List<Skill>();
+    public IReadOnlyList<Skill> SkillSlots => skillSlots;
+    public IEnumerable<Skill> Skills => skills.Values;
+    public event System.Action OnSkillsChanged;
+
     [Header("Hurt")]
     [SerializeField] private float invincibleTime = 0.6f; // หลังโดนตี อมตะสักพัก ไม่ให้โดนรัวจนตายทันที
     private float lastHurtTime = -99f;
@@ -50,6 +61,11 @@ public class Player : Character
         }
         attackAction = InputSystem.actions.FindAction("Attack"); // คลิกซ้าย
         stats.Refresh();
+
+        for (int i = 0; i < startingSkills.Count; i++)
+        {
+            AddSkill(startingSkills[i]);
+        }
     }
 
     private void Update()
@@ -64,6 +80,7 @@ public class Player : Character
         {
             StartCoroutine(AttackRoutine());
         }
+        UpdateSkillInput();
     }
 
     private IEnumerator AttackRoutine()
@@ -85,14 +102,141 @@ public class Player : Character
             Character target = hits[i].GetComponent<Character>();
             if (target != null && target != this && target.IsAlive)
             {
-                target.TakeDamage(stats.Damage);
-                if (!target.IsAlive)
-                {
-                    stats.AddExp(target.ExpReward); // ตีตายแล้วได้ EXP
-                }
+                DealDamage(target, stats.Damage);
             }
         }
     }
+
+    // ทุกการโจมตี (ตีปกติ/สกิล) ผ่านตรงนี้ ตีตายแล้วได้ EXP
+    public void DealDamage(Character target, float amount)
+    {
+        target.TakeDamage(amount);
+        if (!target.IsAlive)
+        {
+            stats.AddExp(target.ExpReward);
+        }
+    }
+
+    // หาเป้าหมายทุกตัวในวงรอบผู้เล่น (ใช้กับสกิล)
+    public List<Character> FindTargetsInRadius(float radius)
+    {
+        List<Character> result = new List<Character>();
+        Collider[] hits = Physics.OverlapSphere(transform.position, radius);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Character c = hits[i].GetComponent<Character>();
+            if (c != null && c != this && c.IsAlive && !result.Contains(c))
+            {
+                result.Add(c);
+            }
+        }
+        return result;
+    }
+
+    #region Skill
+    // ได้สกิลหรืออัปเลเวล — หลักเดียวกับ Inventory.AddItem (week04)
+    public void AddSkill(SkillData skillData)
+    {
+        if (skillData == null) return;
+
+        // 1. ตรวจสอบว่ามีสกิลนี้แล้วหรือยัง
+        if (skills.ContainsKey(skillData.skillName))
+        {
+            skills[skillData.skillName].LevelUp(this);
+        }
+        else
+        {
+            // ถ้ายังไม่มี ให้สร้างสกิลใหม่แล้วเพิ่มเข้า Dictionary
+            Skill newSkill = skillData.CreateSkill();
+            skills.Add(skillData.skillName, newSkill);
+            newSkill.OnAdded(this);
+            skillSlots.Add(newSkill);
+            Debug.Log("Got new skill " + skillData.skillName);
+        }
+        OnSkillsChanged?.Invoke();
+    }
+
+    public bool HasSkill(string skillName)
+    {
+        return skills.ContainsKey(skillName);
+    }
+
+    public int GetSkillLevel(string skillName)
+    {
+        if (skills.ContainsKey(skillName))
+        {
+            return skills[skillName].Level;
+        }
+        return 0;
+    }
+
+    // Skill Tree: เลือกได้ถ้าเป็นสกิลเริ่มต้น หรือสกิลที่มีอยู่มี nextSkills ชี้มาหา (แบบ Unlock() ใน week08)
+    public bool IsSkillAvailable(SkillData skillData)
+    {
+        if (skillData.isStartAvailable) return true;
+        foreach (var owned in skills.Values)
+        {
+            if (owned.Data.nextSkills.Contains(skillData)) return true;
+        }
+        return false;
+    }
+
+    public void PrintSkills()
+    {
+        Debug.Log("--- Skills ---");
+        foreach (var entry in skills)
+        {
+            Debug.Log(entry.Key + " Lv." + entry.Value.Level);
+        }
+    }
+
+    // เพิ่มค่าสถานะ — UpgradeManager เรียกตอนเลือก Stat Boost, PassiveSkill ก็เรียก
+    public void ApplyStatBoost(StatType type, float value, bool isPercent)
+    {
+        switch (type)
+        {
+            case StatType.MaxHP:
+                float addHP = isPercent ? maxHP * value : value;
+                maxHP += addHP;
+                currentHP += addHP;
+                RaiseHPChanged();
+                break;
+            case StatType.Damage:
+                stats.AddDamage(isPercent ? stats.Damage * value : value);
+                break;
+            case StatType.MoveSpeed:
+                moveSpeed += isPercent ? moveSpeed * value : value;
+                break;
+        }
+        Debug.Log($"Stat boost {type} +{value}{(isPercent ? " (x%)" : "")}");
+    }
+
+    // Passive ทำงานเองอยู่แล้ว กดไม่มีผล
+    private void UseSkillSlot(int index)
+    {
+        if (index >= skillSlots.Count) return;
+        if (skillSlots[index] is ActiveSkill active)
+        {
+            active.TryActivate(this);
+        }
+    }
+
+    private void UpdateSkillInput()
+    {
+        foreach (var skill in skills.Values)
+        {
+            skill.Tick(this);
+        }
+
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null) return;
+        // ปุ่ม 1 / 2 / 3 = ช่องสกิล 1 / 2 / 3 (อ่านคีย์แบบ keyboard.qKey ใน OOPPlayer)
+        if (keyboard.digit1Key.wasPressedThisFrame) UseSkillSlot(0);
+        if (keyboard.digit2Key.wasPressedThisFrame) UseSkillSlot(1);
+        if (keyboard.digit3Key.wasPressedThisFrame) UseSkillSlot(2);
+        if (keyboard.pKey.wasPressedThisFrame) PrintSkills();
+    }
+    #endregion
 
     // วาดวงฟันในหน้าต่าง Scene ไว้ปรับระยะ
     private void OnDrawGizmosSelected()

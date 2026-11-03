@@ -27,6 +27,22 @@ public static class SceneBuilder
         Player playerScript = player.AddComponent<Player>();
         playerScript.characterName = "Hero";
 
+        // สกิลตัวอย่าง: 1 = SpinPunch, 2 = FireStorm, 3 = PowerUp (Passive)
+        SkillData spin = GetOrCreateSkill("SpinPunch", SkillKind.Active, SkillEffect.SpinPunch, 15f, 5f, 3f, 2.5f, 0, StatType.Damage, true);
+        SkillData storm = GetOrCreateSkill("FireStorm", SkillKind.Active, SkillEffect.FireStorm, 25f, 10f, 6f, 8f, 3, StatType.Damage, false);
+        SkillData power = GetOrCreateSkill("PowerUp", SkillKind.Passive, SkillEffect.StatBoost, 10f, 5f, 0f, 0f, 0, StatType.Damage, true);
+        if (!spin.nextSkills.Contains(storm)) { spin.nextSkills.Add(storm); EditorUtility.SetDirty(spin); }
+        var pso = new SerializedObject(playerScript);
+        SerializedProperty list = pso.FindProperty("startingSkills");
+        list.ClearArray();
+        SkillData[] start = { spin, storm, power };
+        for (int i = 0; i < start.Length; i++)
+        {
+            list.InsertArrayElementAtIndex(i);
+            list.GetArrayElementAtIndex(i).objectReferenceValue = start[i];
+        }
+        pso.ApplyModifiedPropertiesWithoutUndo();
+
         for (int i = 0; i < 3; i++)
         {
             string dummyName = "Dummy_" + i;
@@ -99,6 +115,135 @@ public static class SceneBuilder
         so.FindProperty("hpText").objectReferenceValue = hpText;
         so.FindProperty("levelText").objectReferenceValue = levelText;
         so.ApplyModifiedPropertiesWithoutUndo();
+
+        BuildSkillBar(root, player, font);
+    }
+
+    // แถบสกิลกลางล่าง: วงกลม 3 ช่อง (ปุ่ม 1, 2, 3)
+    private static void BuildSkillBar(Transform root, Player player, Font font)
+    {
+        GameObject bar = new GameObject("SkillBar", typeof(RectTransform));
+        bar.transform.SetParent(root, false);
+        RectTransform barRect = bar.GetComponent<RectTransform>();
+        barRect.anchorMin = barRect.anchorMax = new Vector2(0.5f, 0f);
+        barRect.pivot = new Vector2(0.5f, 0f);
+        barRect.anchoredPosition = new Vector2(0f, 30f);
+        barRect.sizeDelta = new Vector2(420f, 150f);
+
+        SkillBarUI ui = root.gameObject.AddComponent<SkillBarUI>();
+        var so = new SerializedObject(ui);
+        so.FindProperty("player").objectReferenceValue = player;
+        SerializedProperty slots = so.FindProperty("slots");
+        slots.arraySize = 3;
+
+        string[] keys = { "1", "2", "3" };
+        float[] sizes = { 120f, 120f, 120f };
+        float[] xs = { -140f, 0f, 140f };
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject slot = new GameObject("Slot_" + (i + 1), typeof(RectTransform));
+            slot.transform.SetParent(bar.transform, false);
+            RectTransform rt = slot.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(xs[i], 24f);
+            rt.sizeDelta = new Vector2(sizes[i], sizes[i]);
+
+            Image bg = CreateFill(slot.transform, "BG", LoadSprite("circle_slot"), 0.86f);
+            Image icon = CreateFill(slot.transform, "Icon", null, 0.80f);
+            icon.enabled = false;
+            Text nameText = CreateCenterText(slot.transform, "Name", font, 15, new Color(1f, 0.9f, 0.6f));
+            Image mask = CreateFill(slot.transform, "Cooldown", LoadSprite("circle_white"), 0.86f);
+            mask.color = new Color(0f, 0f, 0f, 0.6f);
+            mask.type = Image.Type.Filled;
+            mask.fillMethod = Image.FillMethod.Radial360;
+            mask.fillOrigin = (int)Image.Origin360.Top;
+            mask.fillClockwise = false;
+            mask.fillAmount = 0f;
+            Text cdText = CreateCenterText(slot.transform, "CooldownText", font, 30, Color.white);
+            CreateFill(slot.transform, "Ring", LoadSprite("skill_slot_ring"), 1f);
+
+            Text levelText = CreateCenterText(slot.transform, "Level", font, 16, new Color(1f, 0.9f, 0.55f));
+            levelText.rectTransform.anchorMin = levelText.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+            levelText.rectTransform.anchoredPosition = new Vector2(0f, 10f);
+            levelText.rectTransform.sizeDelta = new Vector2(100f, 24f);
+
+            {
+                Text key = CreateCenterText(slot.transform, "Key", font, 22, Color.white);
+                key.text = keys[i];
+                key.rectTransform.anchorMin = key.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+                key.rectTransform.anchoredPosition = new Vector2(0f, -14f);
+                key.rectTransform.sizeDelta = new Vector2(40f, 28f);
+            }
+
+            SerializedProperty s = slots.GetArrayElementAtIndex(i);
+            s.FindPropertyRelative("icon").objectReferenceValue = icon;
+            s.FindPropertyRelative("nameText").objectReferenceValue = nameText;
+            s.FindPropertyRelative("cooldownMask").objectReferenceValue = mask;
+            s.FindPropertyRelative("cooldownText").objectReferenceValue = cdText;
+            s.FindPropertyRelative("levelText").objectReferenceValue = levelText;
+        }
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // Image ที่อยู่กลางช่อง ขนาดเป็นสัดส่วนของช่อง
+    private static Image CreateFill(Transform parent, string objName, Sprite sprite, float scale)
+    {
+        GameObject obj = new GameObject(objName, typeof(RectTransform), typeof(Image));
+        obj.transform.SetParent(parent, false);
+        RectTransform rt = obj.GetComponent<RectTransform>();
+        float m = (1f - scale) / 2f;
+        rt.anchorMin = new Vector2(m, m);
+        rt.anchorMax = new Vector2(1f - m, 1f - m);
+        rt.offsetMin = rt.offsetMax = Vector2.zero;
+        Image image = obj.GetComponent<Image>();
+        image.sprite = sprite;
+        image.raycastTarget = false;
+        return image;
+    }
+
+    private static Text CreateCenterText(Transform parent, string objName, Font font, int size, Color color)
+    {
+        GameObject obj = new GameObject(objName, typeof(RectTransform), typeof(Text));
+        obj.transform.SetParent(parent, false);
+        RectTransform rt = obj.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = rt.offsetMax = Vector2.zero;
+        Text text = obj.GetComponent<Text>();
+        text.font = font;
+        text.fontSize = size;
+        text.fontStyle = FontStyle.Bold;
+        text.color = color;
+        text.alignment = TextAnchor.MiddleCenter;
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.raycastTarget = false;
+        text.text = "";
+        text.gameObject.AddComponent<Outline>().effectColor = new Color(0.23f, 0.14f, 0.09f);
+        return text;
+    }
+
+    private static SkillData GetOrCreateSkill(string skillName, SkillKind kind, SkillEffect effect, float baseValue, float perLevel,
+        float cooldown, float radius, int targetCount, StatType stat, bool startAvailable)
+    {
+        string path = "Assets/_Game/Data/Skills/" + skillName + ".asset";
+        SkillData data = AssetDatabase.LoadAssetAtPath<SkillData>(path);
+        if (data != null) return data; // มีแล้วไม่ทับ เผื่อปรับค่าใน Inspector ไว้
+
+        data = ScriptableObject.CreateInstance<SkillData>();
+        data.skillName = skillName;
+        data.kind = kind;
+        data.effect = effect;
+        data.baseValue = baseValue;
+        data.valuePerLevel = perLevel;
+        data.cooldown = cooldown;
+        data.radius = radius;
+        data.targetCount = targetCount;
+        data.statType = stat;
+        data.isStartAvailable = startAvailable;
+        AssetDatabase.CreateAsset(data, path);
+        AssetDatabase.SaveAssets();
+        return data;
     }
 
     // โหลดรูปจาก Art/UI และตั้งให้เป็น Sprite ถ้ายังไม่ได้ตั้ง

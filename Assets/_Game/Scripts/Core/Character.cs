@@ -46,6 +46,12 @@ public abstract class Character : MonoBehaviour
         CheckDead();
     }
 
+    // ให้คลาสลูกแจ้ง UI เมื่อเปลี่ยน maxHP เอง (event เรียกได้แค่ในคลาสที่ประกาศ)
+    protected void RaiseHPChanged()
+    {
+        OnHPChanged?.Invoke(currentHP, maxHP);
+    }
+
     public void Heal(float healPoint)
     {
         if (!isAlive || healPoint <= 0f) return;
