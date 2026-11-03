@@ -27,6 +27,17 @@ public class Player : Character
     private float verticalVelocity;
     private bool isAttacking;
 
+    [Header("Hurt")]
+    [SerializeField] private float invincibleTime = 0.6f; // หลังโดนตี อมตะสักพัก ไม่ให้โดนรัวจนตายทันที
+    private float lastHurtTime = -99f;
+
+    public override void TakeDamage(float damage)
+    {
+        if (Time.time - lastHurtTime < invincibleTime) return;
+        lastHurtTime = Time.time;
+        base.TakeDamage(damage);
+    }
+
     public override void SetUP()
     {
         base.SetUP();
