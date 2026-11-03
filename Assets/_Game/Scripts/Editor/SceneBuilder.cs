@@ -68,13 +68,28 @@ public static class SceneBuilder
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920f, 1080f);
 
-        Sprite sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
         Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        Transform root = canvasObj.transform;
 
-        Text levelText = CreateText(canvasObj.transform, "LevelText", font, new Vector2(40f, -30f), 36, "Lv. 1");
-        Image hpFill = CreateBar(canvasObj.transform, "HPBar", sprite, new Vector2(40f, -80f), new Vector2(400f, 32f), new Color(0.9f, 0.2f, 0.25f));
-        Text hpText = CreateText(hpFill.transform.parent, "HPText", font, new Vector2(10f, 0f), 22, "100 / 100");
-        Image expFill = CreateBar(canvasObj.transform, "EXPBar", sprite, new Vector2(40f, -122f), new Vector2(400f, 16f), new Color(0.3f, 0.75f, 1f));
+        // ขนาด = ครึ่งหนึ่งของไฟล์ภาพ, ระยะ fill = ระยะขอบช่องในภาพ x 0.5
+        CreateImage(root, "HPFrame", LoadSprite("hp_frame"), new Vector2(175f, -50f), new Vector2(474f, 81f));
+        Image hpFill = CreateImage(root, "HPFill", LoadSprite("hp_fill"), new Vector2(175f + 20f, -50f - 19f), new Vector2(432f, 42f));
+        MakeFilled(hpFill);
+        Text hpText = CreateText(root, "HPText", font, new Vector2(195f, -69f), 24, "100 / 100");
+        hpText.rectTransform.sizeDelta = new Vector2(432f, 42f);
+        hpText.alignment = TextAnchor.MiddleCenter;
+        hpText.gameObject.AddComponent<Outline>().effectColor = new Color(0.23f, 0.14f, 0.09f);
+
+        CreateImage(root, "EXPFrame", LoadSprite("exp_frame"), new Vector2(185f, -130f), new Vector2(448f, 34f));
+        Image expFill = CreateImage(root, "EXPFill", LoadSprite("exp_fill"), new Vector2(185f + 13.5f, -130f - 10f), new Vector2(419f, 11f));
+        MakeFilled(expFill);
+
+        CreateImage(root, "Portrait", LoadSprite("portrait_boat"), new Vector2(30f, -25f), new Vector2(150f, 171f));
+        CreateImage(root, "LevelBadge", LoadSprite("level_badge"), new Vector2(125f, -135f), new Vector2(64f, 65f));
+        Text levelText = CreateText(root, "LevelText", font, new Vector2(125f, -135f), 30, "1");
+        levelText.rectTransform.sizeDelta = new Vector2(64f, 65f);
+        levelText.alignment = TextAnchor.MiddleCenter;
+        levelText.color = new Color(1f, 0.9f, 0.55f);
 
         PlayerHUD hud = canvasObj.AddComponent<PlayerHUD>();
         var so = new SerializedObject(hud);
@@ -84,6 +99,44 @@ public static class SceneBuilder
         so.FindProperty("hpText").objectReferenceValue = hpText;
         so.FindProperty("levelText").objectReferenceValue = levelText;
         so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // โหลดรูปจาก Art/UI และตั้งให้เป็น Sprite ถ้ายังไม่ได้ตั้ง
+    private static Sprite LoadSprite(string fileName)
+    {
+        string path = "Assets/_Game/Art/UI/" + fileName + ".png";
+        TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer == null)
+        {
+            Debug.LogError("ไม่พบรูป " + path);
+            return null;
+        }
+        if (importer.textureType != TextureImporterType.Sprite)
+        {
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.mipmapEnabled = false;
+            importer.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+    }
+
+    private static Image CreateImage(Transform parent, string objName, Sprite sprite, Vector2 pos, Vector2 size)
+    {
+        GameObject obj = new GameObject(objName, typeof(RectTransform), typeof(Image));
+        obj.transform.SetParent(parent, false);
+        SetTopLeft(obj.GetComponent<RectTransform>(), pos, size);
+        Image image = obj.GetComponent<Image>();
+        image.sprite = sprite;
+        image.raycastTarget = false;
+        return image;
+    }
+
+    private static void MakeFilled(Image image)
+    {
+        image.type = Image.Type.Filled;
+        image.fillMethod = Image.FillMethod.Horizontal;
+        image.fillOrigin = (int)Image.OriginHorizontal.Left;
     }
 
     // พื้นหลังเข้ม + ตัวเติมสีที่ใช้ fillAmount

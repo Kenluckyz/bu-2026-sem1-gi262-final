@@ -49,6 +49,6 @@ public class PlayerHUD : MonoBehaviour
 
     private void UpdateLevel(int level)
     {
-        if (levelText != null) levelText.text = "Lv. " + level;
+        if (levelText != null) levelText.text = level.ToString(); // ตัวเลขอยู่ในเหรียญเลเวล
     }
 }
