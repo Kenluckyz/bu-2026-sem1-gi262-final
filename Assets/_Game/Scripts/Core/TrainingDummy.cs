@@ -7,6 +7,9 @@ public class TrainingDummy : Character
     [Header("Dummy")]
     [SerializeField] private float respawnDelay = 2f;
     [SerializeField] private Color hitColor = Color.red;
+    [SerializeField] private int expReward = 15;
+
+    public override int ExpReward => expReward;
 
     private Renderer bodyRenderer;
     private Color normalColor;

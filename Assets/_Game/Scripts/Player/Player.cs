@@ -10,8 +10,11 @@ public class Player : Character
     [SerializeField] private float turnSpeed = 720f; // องศาต่อวินาที
     [SerializeField] private float gravity = -20f;
 
+    [Header("Stats")]
+    [SerializeField] private PlayerStats stats = new PlayerStats();
+    public PlayerStats Stats => stats;
+
     [Header("Attack")]
-    [SerializeField] private float attackDamage = 10f;
     [SerializeField] private float attackRange = 1.5f;   // ระยะฟันข้างหน้า
     [SerializeField] private float attackRadius = 1.2f;  // ความกว้างของวงฟัน
     // จังหวะฟัน: ง้างช้า -> ฟันเร็ว (โดนตรงนี้) -> ค้าง -> คืนท่า
@@ -35,6 +38,7 @@ public class Player : Character
             Debug.LogError("ไม่พบ Input Action ชื่อ Move");
         }
         attackAction = InputSystem.actions.FindAction("Attack"); // คลิกซ้าย
+        stats.Refresh();
     }
 
     private void Update()
@@ -70,7 +74,11 @@ public class Player : Character
             Character target = hits[i].GetComponent<Character>();
             if (target != null && target != this && target.IsAlive)
             {
-                target.TakeDamage(attackDamage);
+                target.TakeDamage(stats.Damage);
+                if (!target.IsAlive)
+                {
+                    stats.AddExp(target.ExpReward); // ตีตายแล้วได้ EXP
+                }
             }
         }
     }

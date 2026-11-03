@@ -15,6 +15,8 @@ public abstract class Character : MonoBehaviour
     public float MaxHP => maxHP;
     public float CurrentHP => currentHP;
     public bool IsAlive => isAlive;
+    // EXP ที่ผู้เล่นได้เมื่อฆ่าตัวนี้ (Enemy override ให้ดึงจาก EnemyData)
+    public virtual int ExpReward => 0;
 
     // คนอื่นมาฟังได้ เช่น EnemyManager นับศัตรูที่ตาย, GameManager รู้ว่าผู้เล่นตาย
     public event Action<Character> OnDied;
