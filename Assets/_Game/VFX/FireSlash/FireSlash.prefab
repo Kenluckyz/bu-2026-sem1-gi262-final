@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &48335438801068846
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 341530092781600573}
+  - component: {fileID: 678416563909132245}
+  m_Layer: 0
+  m_Name: FireSlash
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &341530092781600573
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48335438801068846}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &678416563909132245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48335438801068846}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecce0a73e8f6e804980bd7689ae27660, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NightForge.NFEffect
+  json: {fileID: 4900000, guid: 49178b1ad4891cc47b5e5caebbb65e6e, type: 3}
+  bytes: {fileID: 4900000, guid: 8b4209e75c2c5d443abec9eff4975164, type: 3}
+  textures:
+  - {fileID: 2800000, guid: 34df3c6a46f74e049a5658d6991fcdfe, type: 3}
+  shaders:
+  - {fileID: 4800000, guid: 6cb52a53d221e844eaeef063de0be335, type: 3}
+  - {fileID: 4800000, guid: ac2c160a582eb0046aa54f3ae26ef97e, type: 3}
+  - {fileID: 4800000, guid: eb0f8369e9ea482449f4e68e46ba8c26, type: 3}
+  - {fileID: 4800000, guid: 60d0bdb20b8c9bf45a0aff0503efe2f8, type: 3}
+  - {fileID: 4800000, guid: e6863198d8f19b141917b18e50e50f42, type: 3}
+  - {fileID: 4800000, guid: a809dc8bbe2601b4eb631efc8ccc78f8, type: 3}
+  - {fileID: 4800000, guid: 16343d95ba288b64fb04006bd6ae04d8, type: 3}
+  - {fileID: 4800000, guid: 2b1d91d0e473e9340b6afa4fd1d23377, type: 3}
+  - {fileID: 4800000, guid: feef9e787b52c874cb7545bad65eaa0b, type: 3}
+  - {fileID: 4800000, guid: 457e382a3b451fa42afd88e7873f168c, type: 3}
+  - {fileID: 4800000, guid: fe83c807248f46643bd906b673841c7e, type: 3}
+  - {fileID: 4800000, guid: 304f4a31a9dab2d49a3da26d131a9ba7, type: 3}
+  - {fileID: 4800000, guid: fbd9a5b9bd68659438d62198908a033a, type: 3}
+  - {fileID: 4800000, guid: 8570b9afe9f67fb4cbbd9385ac49d64d, type: 3}
+  - {fileID: 4800000, guid: 6d9992a7d3bc5a246a24348e090d9f7f, type: 3}
+  - {fileID: 4800000, guid: d9c4bde70ee75e14eb924eb6dbcdae02, type: 3}
+  shaderKeys:
+  - m0
+  - m1
+  - m10
+  - m11
+  - m12
+  - m13
+  - m14
+  - m15
+  - m2
+  - m3
+  - m4
+  - m5
+  - m6
+  - m7
+  - m8
+  - m9
+  warpShader: {fileID: 4800000, guid: 9fabe2333c97d584bb4307f278ee5ef8, type: 3}
+  labLights: 1
+  playOnEnable: 1
+  loop: 0
+  speed: 1
+  time: 0
+  playing: 0

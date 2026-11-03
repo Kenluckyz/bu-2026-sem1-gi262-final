@@ -1,0 +1,178 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6018560112361342546
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 887953031742691099}
+  - component: {fileID: 603817302960711531}
+  m_Layer: 0
+  m_Name: LightningDash
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &887953031742691099
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6018560112361342546}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &603817302960711531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6018560112361342546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecce0a73e8f6e804980bd7689ae27660, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NightForge.NFEffect
+  json: {fileID: 4900000, guid: 1cc2fb176d3a1374a91b23527056a82c, type: 3}
+  bytes: {fileID: 4900000, guid: 328e9a92261074d44a62ce55d94d7222, type: 3}
+  textures:
+  - {fileID: 2800000, guid: d874cd3314ada284fa914ece23c4cb6a, type: 3}
+  - {fileID: 2800000, guid: 0f46a258b2dd9df4989fcf473296f0e1, type: 3}
+  shaders:
+  - {fileID: 4800000, guid: 315636e35812d0543a01b3eb32da6c3b, type: 3}
+  - {fileID: 4800000, guid: 8595ade2c9eef41429d5c871f994c506, type: 3}
+  - {fileID: 4800000, guid: 88f702ff894699e4b8df1386b9d24d91, type: 3}
+  - {fileID: 4800000, guid: 998e1018f409d494d9d00ea20c6721ef, type: 3}
+  - {fileID: 4800000, guid: a592218044770ae4b8bc10afc7937061, type: 3}
+  - {fileID: 4800000, guid: 9e31e5a07296b544c86f9e72c9daf2b8, type: 3}
+  - {fileID: 4800000, guid: 32db1656f4dc9b742befe21929a4a674, type: 3}
+  - {fileID: 4800000, guid: 4cdf2bc75786a6a41a5321723b63abf4, type: 3}
+  - {fileID: 4800000, guid: ad423a85d158276408b7a897d6c861cb, type: 3}
+  - {fileID: 4800000, guid: caad278450846a8429d3649dea0fae33, type: 3}
+  - {fileID: 4800000, guid: 5ddec830189c99c48907d1b081b30379, type: 3}
+  - {fileID: 4800000, guid: 53b7126aaed44f04dadd0099b4a54499, type: 3}
+  - {fileID: 4800000, guid: 46fb4febec094de4eade6858c255cdde, type: 3}
+  - {fileID: 4800000, guid: 7a9e8ed515821b44f9d6fb76aacd0701, type: 3}
+  - {fileID: 4800000, guid: aa36703c6e9152642a2ee11b25a73c8a, type: 3}
+  - {fileID: 4800000, guid: 65969961f57ccbc4ab582c05d38bdbd7, type: 3}
+  - {fileID: 4800000, guid: 3b5c3bdcd13505347bca3f271817856f, type: 3}
+  - {fileID: 4800000, guid: 53cb23a14bc369547b550bc6595be72b, type: 3}
+  - {fileID: 4800000, guid: d78565a329a1ba0478471ace8de47073, type: 3}
+  - {fileID: 4800000, guid: a5e6b822f35189d43930df5cca0ee03d, type: 3}
+  - {fileID: 4800000, guid: 889c43390a957384a9e0041143f2f677, type: 3}
+  - {fileID: 4800000, guid: 95e9a3c41dc781d40bb50a3b0b65ee69, type: 3}
+  - {fileID: 4800000, guid: 18eb8d5d13bb1e8428140ec3da59db99, type: 3}
+  - {fileID: 4800000, guid: 63381b6a91782a8418dc74a535fa698e, type: 3}
+  - {fileID: 4800000, guid: 8cbcaee5a44caea43985a50f698d880e, type: 3}
+  - {fileID: 4800000, guid: 83e11a8056e2d0544adfaf7e82a31e26, type: 3}
+  - {fileID: 4800000, guid: dda0fe87f1f4685418eb35786ba4b225, type: 3}
+  - {fileID: 4800000, guid: bf5e172b199b422499df24c36b1a0d32, type: 3}
+  - {fileID: 4800000, guid: ef421669cb166984fa3b25750de9f09a, type: 3}
+  - {fileID: 4800000, guid: c885c91c387e73344abd4b4a9483eda7, type: 3}
+  - {fileID: 4800000, guid: 583125dd96e0254478ee2d7853220013, type: 3}
+  - {fileID: 4800000, guid: d1971499ed0debb4aa6357d8a4e0ae35, type: 3}
+  - {fileID: 4800000, guid: 6621d3d9ac7bc7149a08327bd3ba082c, type: 3}
+  - {fileID: 4800000, guid: 7c856fa20c90ff3439c1140acfecae2b, type: 3}
+  - {fileID: 4800000, guid: 037d107c72c3d0e4198de8264ccba684, type: 3}
+  - {fileID: 4800000, guid: 5011cbca0f7cfbd42b09fb2142a54d47, type: 3}
+  - {fileID: 4800000, guid: 624fb3e45444b634ebffad29e8ac094e, type: 3}
+  - {fileID: 4800000, guid: bb93bff9ea4458847834014af01d7016, type: 3}
+  - {fileID: 4800000, guid: 682ce2b1ed8fcfd4eb4fa1fb99d887b8, type: 3}
+  - {fileID: 4800000, guid: ad84bed56cb267c488f65b7c81098f2c, type: 3}
+  - {fileID: 4800000, guid: 233d25e5f230c48479e66335f2f81e7d, type: 3}
+  - {fileID: 4800000, guid: ac02e1f974d34d24ca988e0aa4db8273, type: 3}
+  - {fileID: 4800000, guid: 6bc55dc4792c7364da281102f9d595f4, type: 3}
+  - {fileID: 4800000, guid: e28a0868e9d16ed46a24747653082981, type: 3}
+  - {fileID: 4800000, guid: c75290a4426165f4db7c3746dd69a19f, type: 3}
+  - {fileID: 4800000, guid: 6a441896c9bc98447ac0c8222416cb8b, type: 3}
+  - {fileID: 4800000, guid: e89807a1dec3a594cb2011eb193231d6, type: 3}
+  - {fileID: 4800000, guid: c681efd2d2ad6214191d1b81a5825191, type: 3}
+  - {fileID: 4800000, guid: 38789decfd462a04fb9a6f0d273abff0, type: 3}
+  - {fileID: 4800000, guid: 879f8409b0689de4d8e58d2c90814b17, type: 3}
+  - {fileID: 4800000, guid: afac53f48e3607741af69f2ec5f6c47d, type: 3}
+  - {fileID: 4800000, guid: 708e9315464db2540855af1411388056, type: 3}
+  - {fileID: 4800000, guid: 451cc914cb5300b45a579c13bcf49210, type: 3}
+  - {fileID: 4800000, guid: 852016cd2e08bee4d80a13670015b791, type: 3}
+  - {fileID: 4800000, guid: 448f86561e229c34099c2600df2b6925, type: 3}
+  - {fileID: 4800000, guid: 360ef74933b47984aba588a7a42481c5, type: 3}
+  - {fileID: 4800000, guid: 7f863cfd7732e524aafe6bbb46b56020, type: 3}
+  - {fileID: 4800000, guid: 965c4905e8e7d754b9a21912b61441c3, type: 3}
+  - {fileID: 4800000, guid: cda4fca1ffeaffe47ab777a1d995f339, type: 3}
+  shaderKeys:
+  - m0
+  - m1
+  - m10
+  - m11
+  - m12
+  - m13
+  - m14
+  - m15
+  - m16
+  - m17
+  - m18
+  - m19
+  - m2
+  - m20
+  - m21
+  - m22
+  - m23
+  - m24
+  - m25
+  - m26
+  - m27
+  - m28
+  - m29
+  - m3
+  - m30
+  - m31
+  - m32
+  - m33
+  - m34
+  - m35
+  - m36
+  - m37
+  - m38
+  - m39
+  - m4
+  - m40
+  - m41
+  - m42
+  - m43
+  - m44
+  - m45
+  - m46
+  - m47
+  - m48
+  - m49
+  - m5
+  - m50
+  - m51
+  - m52
+  - m53
+  - m54
+  - m55
+  - m56
+  - m57
+  - m58
+  - m6
+  - m7
+  - m8
+  - m9
+  warpShader: {fileID: 4800000, guid: 9fabe2333c97d584bb4307f278ee5ef8, type: 3}
+  labLights: 1
+  playOnEnable: 1
+  loop: 0
+  speed: 1
+  time: 0
+  playing: 0

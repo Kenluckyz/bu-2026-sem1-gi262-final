@@ -30,10 +30,12 @@ public class Player : Character
     [SerializeField] private float[] hitPoint = { 0.35f, 0.4f, 0.45f };
     [SerializeField] private float[] chainPoint = { 0.65f, 0.65f, 0.85f };    // ท่า 3 ค้างนานกว่า
     [SerializeField] private float clickBufferTime = 0.6f;                     // คลิกที่เก่าเกินนี้ทิ้ง
+    [SerializeField] private float attackMoveMultiplier = 0.9f;                // ระหว่างต่อยช้าลงแค่ 10%
     // คิวคลิกที่รอต่อย (Queue แบบ autoMoveQueue ใน ActionHistoryManager week09) เก็บเวลาที่คลิก
     private Queue<float> comboQueue = new Queue<float>();
     private int comboStep;          // 0 = ท่า 1, 1 = ท่า 2, 2 = ท่า 3
     private float lastComboEndTime = -99f;
+    private Coroutine comboRoutine; // เก็บไว้หยุดคอมโบตอนกดสกิลกลางท่า
 
     private CharacterController controller;
     private InputAction moveAction;
@@ -51,12 +53,19 @@ public class Player : Character
     public IEnumerable<Skill> Skills => skills.Values;
     public event System.Action OnSkillsChanged;
 
+    [Header("Dash")]
+    [SerializeField] private float dashSpeed = 12f;     // เร็วกว่าเดินปกติมาก
+    [SerializeField] private float dashTime = 0.35f;    // พุ่งนานแค่ไหน (วินาที) — คูลดาวน์อยู่ใน SkillData
+    private bool isDashing;
+    private bool isCasting; // กำลังเล่นท่าสกิล 2/3
+
     [Header("Hurt")]
     [SerializeField] private float invincibleTime = 0.6f; // หลังโดนตี อมตะสักพัก ไม่ให้โดนรัวจนตายทันที
     private float lastHurtTime = -99f;
 
     public override void TakeDamage(float damage)
     {
+        if (isDashing) return; // ระหว่างพุ่งหลบ ไม่โดนดาเมจ
         if (Time.time - lastHurtTime < invincibleTime) return;
         lastHurtTime = Time.time;
         base.TakeDamage(damage);
@@ -86,9 +95,17 @@ public class Player : Character
     {
         if (!isAlive || moveAction == null) return;
 
-        // ระหว่างฟันยืนนิ่ง จะได้ฟันตรงทิศที่หันอยู่
-        Vector2 input = isAttacking ? Vector2.zero : moveAction.ReadValue<Vector2>();
-        Move(input);
+        UpdateSkillInput();
+        if (isDashing) return; // ระหว่างพุ่ง Coroutine คุมการเคลื่อนที่เอง
+        if (isCasting)
+        {
+            Move(Vector2.zero); // ระหว่างท่าสกิลยืนนิ่ง ท่ากับตัวจะได้ไปด้วยกัน
+            return;
+        }
+
+        // ระหว่างต่อยยังเดินได้แต่ช้าลง จะได้ถอยหนีศัตรูได้ ไม่ยืนนิ่งให้โดนรุม
+        Vector2 input = moveAction.ReadValue<Vector2>();
+        Move(isAttacking ? input * attackMoveMultiplier : input);
 
         // 1. คลิกแล้วเข้าคิว (จำไว้สูงสุด 2 ครั้ง กดรัวระหว่างต่อยก็ไม่หาย)
         if (attackAction != null && attackAction.triggered && comboQueue.Count < 2)
@@ -101,10 +118,9 @@ public class Player : Character
             float clickTime = comboQueue.Dequeue();
             if (Time.time - clickTime <= clickBufferTime)
             {
-                StartCoroutine(ComboAttack());
+                comboRoutine = StartCoroutine(ComboAttack());
             }
         }
-        UpdateSkillInput();
     }
 
     // ต่อย 1 ท่าในคอมโบ: ง้างช้า -> ต่อยเร็ว (โดนตรงนี้) -> ค้าง -> คืนท่า
@@ -123,10 +139,11 @@ public class Player : Character
         {
             // สั่งเล่นท่าตรง ๆ ตั้งแต่ต้น ไม่ผ่าน Trigger จะได้ไม่รีเซ็ตกลางท่าเวลาคลิกรัว
             string stateName = "Combo" + (step + 1);
-            animator.CrossFadeInFixedTime(stateName, 0.05f, 0, 0f);
+            // เลเยอร์ 1 = UpperBody ต่อยแค่ตัวบน ขายังเดินได้
+            animator.CrossFadeInFixedTime(stateName, 0.05f, 1, 0f);
             yield return null; // รอ 1 เฟรมให้ Animator เริ่มท่า
-            AnimatorStateInfo info = animator.GetNextAnimatorStateInfo(0);
-            if (!info.IsName(stateName)) info = animator.GetCurrentAnimatorStateInfo(0);
+            AnimatorStateInfo info = animator.GetNextAnimatorStateInfo(1);
+            if (!info.IsName(stateName)) info = animator.GetCurrentAnimatorStateInfo(1);
             if (info.length > 0.05f) length = info.length;
         }
 
@@ -137,6 +154,59 @@ public class Player : Character
         comboStep = (step + 1) % 3; // 1 -> 2 -> 3 -> 1
         lastComboEndTime = Time.time;
         isAttacking = false;
+    }
+
+    // พุ่งโจมตี (Dash ใน class diagram) — DashStrikeSkill เรียก, คูลดาวน์อยู่ที่ ActiveSkill
+    public void Dash(float damage, float hitRadius)
+    {
+        if (isDashing) return;
+        if (isAttacking)
+        {
+            // กดพุ่งกลางคอมโบ = ยกเลิกท่าต่อย (Coroutine ที่รันอยู่มีแค่ ComboAttack)
+            StopAllCoroutines();
+            isAttacking = false;
+            if (animator != null) animator.CrossFadeInFixedTime("Empty", 0.05f, 1, 0f); // หยุดท่าต่อยตัวบน
+        }
+        StartCoroutine(DashRoutine(damage, hitRadius));
+    }
+
+    private IEnumerator DashRoutine(float damage, float hitRadius)
+    {
+        isDashing = true;
+        comboQueue.Clear(); // คลิกที่ค้างไว้ก่อนพุ่ง ไม่ต้องต่อย
+        List<Character> alreadyHit = new List<Character>(); // ตัวไหนโดนแล้วไม่โดนซ้ำ
+
+        // พุ่งไปทางที่กด WASD อยู่ ถ้าไม่กดเลยพุ่งไปข้างหน้า
+        Vector2 input = moveAction.ReadValue<Vector2>();
+        Vector3 direction = new Vector3(input.x, 0f, input.y);
+        if (direction.sqrMagnitude < 0.01f) direction = transform.forward;
+        direction.Normalize();
+        transform.rotation = Quaternion.LookRotation(direction);
+        if (animator != null)
+        {
+            animator.ResetTrigger("Skill"); // สกิลนี้ใช้ท่า Dash ไม่ใช่ท่าสกิลทั่วไป
+            animator.CrossFadeInFixedTime("Dash", 0.05f, 0, 0f);
+        }
+
+        float timer = 0f;
+        while (timer < dashTime)
+        {
+            controller.Move(direction * dashSpeed * Time.deltaTime);
+            timer += Time.deltaTime;
+
+            // ศัตรูที่พุ่งผ่าน โดนดาเมจ
+            List<Character> targets = FindTargetsInRadius(hitRadius);
+            for (int i = 0; i < targets.Count; i++)
+            {
+                if (alreadyHit.Contains(targets[i])) continue;
+                alreadyHit.Add(targets[i]);
+                DealDamage(targets[i], damage);
+            }
+            yield return null; // รอเฟรมถัดไป
+        }
+        isDashing = false;
+        // ตัวหยุดพุ่งแล้ว ตัดท่าพุ่งกลับไปท่าปกติทันที ท่าจะได้ไม่ก้าวต่อทั้งที่ตัวหยุด
+        if (animator != null) animator.CrossFadeInFixedTime("Idle", 0.1f, 0);
     }
 
     public void Attack()
@@ -159,10 +229,17 @@ public class Player : Character
         }
     }
 
+    // ดาเมจเพิ่มชั่วคราว (0.3 = แรงขึ้น 30%) — MetalHeart ตั้งค่าทุกเฟรม
+    private float bonusDamage;
+    public void SetBonusDamage(float value)
+    {
+        bonusDamage = value;
+    }
+
     // ทุกการโจมตี (ตีปกติ/สกิล) ผ่านตรงนี้ ตีตายแล้วได้ EXP
     public void DealDamage(Character target, float amount)
     {
-        target.TakeDamage(amount);
+        target.TakeDamage(amount * (1f + bonusDamage));
         if (!target.IsAlive)
         {
             stats.AddExp(target.ExpReward);
@@ -203,6 +280,7 @@ public class Player : Character
             skills.Add(skillData.skillName, newSkill);
             newSkill.OnAdded(this);
             skillSlots.Add(newSkill);
+            VFXManager.Prewarm(skillData.vfxPrefab, transform.position); // เตรียมเอฟเฟกต์ไว้ก่อน กดครั้งแรกไม่กระตุก
             Debug.Log("Got new skill " + skillData.skillName);
         }
         OnSkillsChanged?.Invoke();
@@ -266,11 +344,53 @@ public class Player : Character
     // Passive ทำงานเองอยู่แล้ว กดไม่มีผล
     private void UseSkillSlot(int index)
     {
-        if (index >= skillSlots.Count) return;
-        if (skillSlots[index] is ActiveSkill active && active.TryActivate(this))
+        if (index >= skillSlots.Count || isCasting) return;
+        if (skillSlots[index] is ActiveSkill active)
         {
-            if (animator != null) animator.SetTrigger("Skill");
+            active.TryActivate(this);
         }
+    }
+
+    // ตำแหน่งกระดูกในท่า (มือ/เท้า) ให้เอฟเฟกต์ออกจากตรงนั้น — Humanoid ของ Mixamo หากระดูกให้เอง
+    public Transform GetBone(HumanBodyBones bone)
+    {
+        if (animator == null || bone == HumanBodyBones.LastBone || !animator.isHuman) return null;
+        return animator.GetBoneTransform(bone);
+    }
+
+    // เล่นท่าสกิล แล้วปล่อยดาเมจตรงจังหวะท่า — หลักเดียวกับ ComboAttack (ง้าง -> โดน -> คืนท่า)
+    public void CastSkill(ActiveSkill skill)
+    {
+        StartCoroutine(CastRoutine(skill));
+    }
+
+    private IEnumerator CastRoutine(ActiveSkill skill)
+    {
+        SkillData data = skill.Data;
+        string state = data.animState;
+        if (animator == null || string.IsNullOrEmpty(state) || state == "Dash")
+        {
+            skill.Execute(this); // Dash/ไม่มีท่า: ออกทันที (Dash คุมท่าเองใน DashRoutine)
+            yield break;
+        }
+
+        // กดกลางคอมโบ = ยกเลิกท่าต่อยตัวบน
+        if (comboRoutine != null) StopCoroutine(comboRoutine);
+        isAttacking = false;
+        comboQueue.Clear();
+        animator.CrossFadeInFixedTime("Empty", 0.05f, 1, 0f);
+
+        isCasting = true;
+        animator.CrossFadeInFixedTime(state, 0.05f, 0, 0f);
+        yield return null; // รอ 1 เฟรมให้ Animator เริ่มท่า แล้วอ่านความยาวท่าจริง
+        AnimatorStateInfo info = animator.GetNextAnimatorStateInfo(0);
+        if (!info.IsName(state)) info = animator.GetCurrentAnimatorStateInfo(0);
+        float length = info.length > 0.05f ? info.length : 0.5f; // length หารด้วย speed ของ state แล้ว
+
+        yield return new WaitForSeconds(length * data.hitPoint);
+        skill.Execute(this);
+        yield return new WaitForSeconds(length * Mathf.Max(0f, data.recoverPoint - data.hitPoint));
+        isCasting = false;
     }
 
     private void UpdateSkillInput()

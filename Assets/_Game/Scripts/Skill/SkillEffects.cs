@@ -17,6 +17,72 @@ public class SpinPunchSkill : ActiveSkill
     }
 }
 
+// Active: พุ่งโจมตี — พุ่งไปข้างหน้า ศัตรูที่พุ่งผ่านโดนดาเมจ (ตัวละ 1 ครั้ง)
+public class DashStrikeSkill : ActiveSkill
+{
+    public DashStrikeSkill(SkillData data) : base(data) { }
+
+    protected override void Activate(Player player)
+    {
+        player.Dash(Value(), data.radius);
+    }
+}
+
+// Active: ปล่อยหมัดแรง โดนศัตรูที่อยู่ในกรวยข้างหน้า
+public class OverPunchSkill : ActiveSkill
+{
+    public OverPunchSkill(SkillData data) : base(data) { }
+
+    protected override void Activate(Player player)
+    {
+        List<Character> targets = player.FindTargetsInRadius(data.radius);
+        int hitCount = 0;
+        for (int i = 0; i < targets.Count; i++)
+        {
+            // มุมระหว่างทิศที่หัน กับทิศไปหาศัตรู ไม่เกินครึ่งกรวย = อยู่ในกรวย
+            Vector3 toTarget = targets[i].transform.position - player.transform.position;
+            toTarget.y = 0f;
+            if (Vector3.Angle(player.transform.forward, toTarget) <= data.coneAngle / 2f)
+            {
+                player.DealDamage(targets[i], Value());
+                hitCount++;
+            }
+        }
+        Debug.Log($"OverPunch hit {hitCount} targets");
+    }
+}
+
+// Active: กระทืบเท้า ดาเมจวงกว้างรอบตัว
+public class FinalExecutionSkill : ActiveSkill
+{
+    public FinalExecutionSkill(SkillData data) : base(data) { }
+
+    protected override void Activate(Player player)
+    {
+        List<Character> targets = player.FindTargetsInRadius(data.radius);
+        for (int i = 0; i < targets.Count; i++)
+        {
+            player.DealDamage(targets[i], Value());
+        }
+        Debug.Log($"FinalExecution hit {targets.Count} targets");
+    }
+}
+
+// Passive: Metal Heart ยิ่งเลือดน้อยยิ่งตีแรง — Value() = % ดาเมจที่เพิ่มตอนเลือดใกล้หมด
+public class MetalHeartSkill : PassiveSkill
+{
+    public MetalHeartSkill(SkillData data) : base(data) { }
+
+    // ไม่ได้บวกค่าทีเดียว แต่คิดใหม่ทุกเฟรมตามเลือดตอนนั้น (ใน Tick)
+    protected override void Apply(Player player, float amount) { }
+
+    public override void Tick(Player player)
+    {
+        float missingHP = 1f - player.CurrentHP / player.MaxHP; // 0 = เลือดเต็ม, 1 = เลือดหมด
+        player.SetBonusDamage(missingHP * Value() / 100f);
+    }
+}
+
 // Active: FireStorm ตีศัตรูที่เลือดน้อยสุด N ตัว — ต่อยอดจาก OOPPlayer.UseFireStorm + UtilitySortEnemies (week07)
 public class FireStormSkill : ActiveSkill
 {

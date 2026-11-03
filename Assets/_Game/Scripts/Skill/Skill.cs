@@ -60,8 +60,29 @@ public abstract class ActiveSkill : Skill
             return false;
         }
         lastUseTime = Time.time;
-        Activate(player);
+        player.CastSkill(this); // Player เล่นท่า แล้วเรียก Execute ตอนถึงจังหวะ hitPoint
         return true;
+    }
+
+    // จังหวะที่หมัด/เท้าลงจริง: ดาเมจ + เอฟเฟกต์
+    public void Execute(Player player)
+    {
+        Activate(player);
+        PlayVFX(player);
+    }
+
+    // ทุก ActiveSkill เล่นเอฟเฟกต์ของตัวเองจาก SkillData (ไม่ต้องเขียนซ้ำในคลาสลูก)
+    private void PlayVFX(Player player)
+    {
+        Transform t = player.transform;
+        Vector3 position = t.position + t.forward * data.vfxForward + t.right * data.vfxSide + Vector3.up * data.vfxHeight;
+        // ออกจากมือ/เท้าที่ใช้ในท่าจริง ณ จังหวะ hitPoint
+        Transform bone = player.GetBone(data.vfxBone);
+        if (bone != null) position = bone.position + t.forward * data.vfxForward;
+        // หันตามผู้เล่น -> หมุนซ้ายขวา (y) -> วางนอน/ตั้ง (x)
+        Vector3 r = data.vfxRotation;
+        Quaternion rotation = t.rotation * Quaternion.Euler(0f, r.y, 0f) * Quaternion.Euler(r.x, 0f, r.z);
+        VFXManager.Play(data.vfxPrefab, position, rotation, data.vfxScale, data.vfxTime, data.vfxFollow ? t : null);
     }
 
     // แต่ละสกิลเขียนผลเอง

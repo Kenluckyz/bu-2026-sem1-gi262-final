@@ -1,6 +1,8 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 // เมนู BoatVsBoss > Build Test_Player Scene : สร้างพื้น ผู้เล่น กล้อง ให้พร้อมกด Play
@@ -23,7 +25,8 @@ public static class SceneBuilder
         GameObject player = BuildBoatPlayer();
         Player playerScript = player.GetComponent<Player>();
 
-        // สกิลตัวอย่าง: 1 = SpinPunch, 2 = FireStorm, 3 = PowerUp (Passive)
+        // สกิลตัวอย่างเดิม (SpinPunch/FireStorm/PowerUp) ยังสร้างไว้ให้เพื่อนใช้เป็นตัวอย่าง แต่ไม่ได้ใส่ให้ Boat
+        SkillData dash = GetOrCreateSkill("Dash", SkillKind.Active, SkillEffect.DashStrike, 20f, 5f, 2f, 1.2f, 0, StatType.Damage, true);
         SkillData spin = GetOrCreateSkill("SpinPunch", SkillKind.Active, SkillEffect.SpinPunch, 15f, 5f, 3f, 2.5f, 0, StatType.Damage, true);
         SkillData storm = GetOrCreateSkill("FireStorm", SkillKind.Active, SkillEffect.FireStorm, 25f, 10f, 6f, 8f, 3, StatType.Damage, false);
         SkillData power = GetOrCreateSkill("PowerUp", SkillKind.Passive, SkillEffect.StatBoost, 10f, 5f, 0f, 0f, 0, StatType.Damage, true);
@@ -31,7 +34,32 @@ public static class SceneBuilder
         var pso = new SerializedObject(playerScript);
         SerializedProperty list = pso.FindProperty("startingSkills");
         list.ClearArray();
-        SkillData[] start = { spin, storm, power };
+        // สกิลของ Boat: 1 = Dash, 2 = Over Punch, 3 = Final Execution, ติดตัว = Metal Heart
+        SkillData overPunch = GetOrCreateSkill("OverPunch", SkillKind.Active, SkillEffect.OverPunch, 35f, 10f, 4f, 3f, 0, StatType.Damage, true);
+        SkillData finalExec = GetOrCreateSkill("FinalExecution", SkillKind.Active, SkillEffect.FinalExecution, 50f, 15f, 10f, 5f, 0, StatType.Damage, true);
+        SkillData metalHeart = GetOrCreateSkill("MetalHeart", SkillKind.Passive, SkillEffect.MetalHeart, 50f, 10f, 0f, 0f, 0, StatType.Damage, true);
+        SkillData[] start = { dash, overPunch, finalExec, metalHeart };
+        // จังหวะท่า (สัดส่วนของความยาวท่า): หมัด/เท้าลงตอน hitPoint, ขยับได้ตอน recoverPoint
+        overPunch.animState = "OverPunch"; overPunch.hitPoint = 0.4f; overPunch.recoverPoint = 0.75f; EditorUtility.SetDirty(overPunch);
+        finalExec.animState = "Stomp"; finalExec.hitPoint = 0.5f; finalExec.recoverPoint = 0.8f; EditorUtility.SetDirty(finalExec);
+        dash.animState = "Dash"; dash.hitPoint = 0f; EditorUtility.SetDirty(dash);
+        // ไอคอนสกิล (เจนใน ComfyUI สไตล์เดียวกับ HUD)
+        dash.icon = LoadSprite("icon_dash"); overPunch.icon = LoadSprite("icon_overpunch");
+        finalExec.icon = LoadSprite("icon_final"); metalHeart.icon = LoadSprite("icon_metal");
+        EditorUtility.SetDirty(metalHeart);
+        // เอฟเฟกต์ 3D ที่เพื่อนเลือกจาก Game Mellow (prefab สร้างอัตโนมัติตอน import โดย NFEffectImporter)
+        // Lab 1 หน่วย = 1 เมตร ตัวละครใน Lab สูง 0.9 — Boat สูงราว 1.8 เลยขยาย 2 เท่า
+        // สายฟ้าไม่ติดตัว: เกิดที่จุดเริ่มพุ่งแล้วทิ้งเป็นแนวตามทางที่พุ่ง (DashRoutine หันตัวไปทิศ WASD ก่อน)
+        // ย่อให้ยาวเท่าระยะพุ่งจริง (12 x 0.35 = ~4 เมตร)
+        SetVFX(dash, "LightningDash", 1f, 0.4f, 0f, 0.5f, new Vector3(0f, -90f, 0f));
+        // ฟันเพลิงเป็นแผ่นตั้ง: วางนอน (x 90) แล้วหันด้านโค้งไปข้างหน้า (y 90) เป็นเสี้ยวกวาดหน้าตัว ขนาดพอ ๆ กรวยดาเมจ
+        // วางนอนคว่ำ (x -90) + หมุน 180 (y 90) = สะท้อนหน้า-หลัง ให้ส่วนนูนของเสี้ยวชี้ไปหน้าศัตรู ปลายโค้งกลับมาหาตัว
+        // จุดหมุนของเอฟเฟกต์ไม่อยู่กลางเสี้ยว เลยเลื่อนขวา+หน้า ให้ตัวละครอยู่กลางวงโค้งพอดี
+        SetVFX(overPunch, "FireSlash", 1.6f, 0.5f, 0.9f, 1f, new Vector3(-90f, 90f, 0f));
+        overPunch.vfxSide = 1.1f;
+        overPunch.vfxBone = HumanBodyBones.LastBone; // ยึดกลางตัว (ถ้ายึดมือ ตำแหน่งจะแกว่งตามท่า)
+        finalExec.vfxBone = HumanBodyBones.LastBone;   // วงไฟอยู่ใต้ตัว ไม่ต้องตามเท้า
+        SetVFX(finalExec, "FireRing", 2.5f, 1f, 0f, 0f, new Vector3(0f, -90f, 0f));
         for (int i = 0; i < start.Length; i++)
         {
             list.InsertArrayElementAtIndex(i);
@@ -61,6 +89,7 @@ public static class SceneBuilder
         var so = new SerializedObject(follow);
         so.FindProperty("target").objectReferenceValue = player.transform;
         so.ApplyModifiedPropertiesWithoutUndo();
+        BuildBloom(cam);
 
         BuildHUD(playerScript);
 
@@ -313,6 +342,49 @@ public static class SceneBuilder
         text.text = "";
         text.gameObject.AddComponent<Outline>().effectColor = new Color(0.23f, 0.14f, 0.09f);
         return text;
+    }
+
+    // Bloom ให้เอฟเฟกต์เรืองแสงเหมือนใน Lab (Threshold 1, Intensity 1 ตาม effect.nf.json)
+    private static void BuildBloom(Camera cam)
+    {
+        cam.GetUniversalAdditionalCameraData().renderPostProcessing = true;
+
+        const string profilePath = "Assets/_Game/Data/BloomProfile.asset";
+        VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
+        if (profile == null)
+        {
+            profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(profile, profilePath);
+        }
+        if (!profile.TryGet(out Bloom bloom))
+        {
+            bloom = profile.Add<Bloom>(true);
+            AssetDatabase.AddObjectToAsset(bloom, profile);
+        }
+        bloom.threshold.Override(1f);
+        bloom.intensity.Override(1f);
+        EditorUtility.SetDirty(profile);
+
+        GameObject go = GameObject.Find("Global Volume");
+        if (go == null) go = new GameObject("Global Volume");
+        Volume volume = go.GetComponent<Volume>();
+        if (volume == null) volume = go.AddComponent<Volume>();
+        volume.isGlobal = true;
+        volume.sharedProfile = profile;
+    }
+
+    private static void SetVFX(SkillData data, string folder, float scale, float time, float forward, float height, Vector3 rotation)
+    {
+        bool follow = false;
+        data.vfxHeight = height;
+        data.vfxRotation = rotation;
+        data.vfxPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/VFX/" + folder + "/" + folder + ".prefab");
+        if (data.vfxPrefab == null) Debug.LogWarning("ยังไม่มีเอฟเฟกต์ " + folder);
+        data.vfxScale = scale;
+        data.vfxTime = time;
+        data.vfxForward = forward;
+        data.vfxFollow = follow;
+        EditorUtility.SetDirty(data);
     }
 
     private static SkillData GetOrCreateSkill(string skillName, SkillKind kind, SkillEffect effect, float baseValue, float perLevel,
