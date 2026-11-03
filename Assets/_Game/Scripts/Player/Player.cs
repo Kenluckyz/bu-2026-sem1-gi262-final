@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,9 +10,19 @@ public class Player : Character
     [SerializeField] private float turnSpeed = 720f; // องศาต่อวินาที
     [SerializeField] private float gravity = -20f;
 
+    [Header("Attack")]
+    [SerializeField] private float attackDamage = 10f;
+    [SerializeField] private float attackRange = 1.5f;   // ระยะฟันข้างหน้า
+    [SerializeField] private float attackRadius = 1.2f;  // ความกว้างของวงฟัน
+    // จังหวะฟัน: ง้างช้า -> ฟันเร็ว (โดนตรงนี้) -> ค้าง -> คืนท่า
+    [SerializeField] private float windUpTime = 0.15f;
+    [SerializeField] private float recoverTime = 0.25f;
+
     private CharacterController controller;
     private InputAction moveAction;
+    private InputAction attackAction;
     private float verticalVelocity;
+    private bool isAttacking;
 
     public override void SetUP()
     {
@@ -23,14 +34,52 @@ public class Player : Character
         {
             Debug.LogError("ไม่พบ Input Action ชื่อ Move");
         }
+        attackAction = InputSystem.actions.FindAction("Attack"); // คลิกซ้าย
     }
 
     private void Update()
     {
         if (!isAlive || moveAction == null) return;
 
-        Vector2 input = moveAction.ReadValue<Vector2>();
+        // ระหว่างฟันยืนนิ่ง จะได้ฟันตรงทิศที่หันอยู่
+        Vector2 input = isAttacking ? Vector2.zero : moveAction.ReadValue<Vector2>();
         Move(input);
+
+        if (attackAction != null && attackAction.triggered && !isAttacking)
+        {
+            StartCoroutine(AttackRoutine());
+        }
+    }
+
+    private IEnumerator AttackRoutine()
+    {
+        isAttacking = true;
+        yield return new WaitForSeconds(windUpTime);
+        Attack();
+        yield return new WaitForSeconds(recoverTime);
+        isAttacking = false;
+    }
+
+    // หา Character ทุกตัวในวงหน้าผู้เล่น แล้วสั่ง TakeDamage (Polymorphism: ศัตรูแต่ละแบบรับดาเมจต่างกันได้)
+    public void Attack()
+    {
+        Vector3 center = transform.position + transform.forward * attackRange;
+        Collider[] hits = Physics.OverlapSphere(center, attackRadius);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Character target = hits[i].GetComponent<Character>();
+            if (target != null && target != this && target.IsAlive)
+            {
+                target.TakeDamage(attackDamage);
+            }
+        }
+    }
+
+    // วาดวงฟันในหน้าต่าง Scene ไว้ปรับระยะ
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position + transform.forward * attackRange, attackRadius);
     }
 
     private void Move(Vector2 input)
@@ -57,6 +106,7 @@ public class Player : Character
     protected override void Die()
     {
         base.Die();
-        // ภายหลัง GameManager จะฟัง OnDied แล้วเปิดหน้า Game Over
+        // ล้มลงให้เห็นว่าตาย ภายหลัง GameManager จะฟัง OnDied แล้วเปิดหน้า Game Over
+        transform.rotation = Quaternion.Euler(90f, transform.eulerAngles.y, 0f);
     }
 }

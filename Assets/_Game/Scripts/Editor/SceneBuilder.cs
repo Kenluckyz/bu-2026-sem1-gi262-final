@@ -26,6 +26,17 @@ public static class SceneBuilder
         Player playerScript = player.AddComponent<Player>();
         playerScript.characterName = "Hero";
 
+        for (int i = 0; i < 3; i++)
+        {
+            string dummyName = "Dummy_" + i;
+            DestroyIfExists(dummyName);
+            GameObject dummy = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            dummy.name = dummyName;
+            dummy.transform.position = new Vector3(-3f + i * 3f, 0.75f, 4f);
+            dummy.transform.localScale = new Vector3(1f, 1.5f, 1f);
+            dummy.AddComponent<TrainingDummy>().characterName = dummyName;
+        }
+
         Camera cam = Camera.main;
         if (cam == null)
         {
