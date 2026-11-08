@@ -195,7 +195,7 @@ public static class SceneBuilder
     }
 
     // Canvas มุมซ้ายบน: Lv. / แถบเลือดแดง / แถบ EXP ฟ้า
-    private static void BuildHUD(Player player)
+    public static void BuildHUD(Player player) // public: EnemySceneBuilder (Test_Enemy) ใช้ด้วย
     {
         DestroyIfExists("HUD");
 
@@ -345,7 +345,7 @@ public static class SceneBuilder
     }
 
     // Bloom ให้เอฟเฟกต์เรืองแสงเหมือนใน Lab (Threshold 1, Intensity 1 ตาม effect.nf.json)
-    private static void BuildBloom(Camera cam)
+    public static void BuildBloom(Camera cam) // public: EnemySceneBuilder (Test_Enemy) ใช้ด้วย
     {
         cam.GetUniversalAdditionalCameraData().renderPostProcessing = true;
 

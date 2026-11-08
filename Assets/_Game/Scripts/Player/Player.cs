@@ -69,7 +69,7 @@ public class Player : Character
         if (Time.time - lastHurtTime < invincibleTime) return;
         lastHurtTime = Time.time;
         base.TakeDamage(damage);
-        if (isAlive && animator != null) animator.SetTrigger("Hit");
+        // ไม่เล่นท่าโดนตี (Hit) — Boat ไม่ชะงักเวลาโดนศัตรูตี เดิน/ต่อย/ใช้สกิลต่อได้เลย
     }
 
     public override void SetUP()

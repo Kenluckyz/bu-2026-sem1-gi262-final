@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd584af0311bb8447abd4511be5a79d7, type: 3}
+  m_Name: Skeleton
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Skeleton
+  prefab: {fileID: 3940244368856440261, guid: 4185551afcab9dc47861ee08be2d7bb2, type: 3}
+  maxHP: 30
+  damage: 7
+  expDrop: 15
+  modelScale: 1
+  moveSpeed: 2.6
+  detectRange: 16
+  attackRange: 9
+  attackCooldown: 2
+  hitPoint: 0.45
+  attackAnimSpeed: 1
+  attackAnims:
+  - Attack1
+  canBeStunned: 1
+  stunTime: 0.4
+  corpseTime: 3
+  splitInto: {fileID: 0}
+  splitCount: 2

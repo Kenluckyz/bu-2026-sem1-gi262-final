@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd584af0311bb8447abd4511be5a79d7, type: 3}
+  m_Name: Goblin
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: Goblin
+  prefab: {fileID: 8078014225274864866, guid: 08453d56463916d44bc79c8d919cfcdd, type: 3}
+  maxHP: 40
+  damage: 8
+  expDrop: 10
+  modelScale: 1.3
+  moveSpeed: 4.2
+  detectRange: 14
+  attackRange: 1.3
+  attackCooldown: 0.6
+  hitPoint: 0.45
+  attackAnimSpeed: 1.3
+  attackAnims:
+  - Attack1
+  - Attack2
+  canBeStunned: 1
+  stunTime: 0.35
+  corpseTime: 3
+  splitInto: {fileID: 0}
+  splitCount: 2
