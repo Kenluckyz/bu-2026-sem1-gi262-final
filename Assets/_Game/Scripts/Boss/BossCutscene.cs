@@ -30,6 +30,27 @@ public class BossCutscene : MonoBehaviour
     [SerializeField] private float cutsceneFov = 28f;   // เลนส์แคบตลอด cutscene = ภาพแน่น ไม่เห็นแมพ
 
     private bool played;
+    // เตรียมของหนักไว้ตั้งแต่โหลดฉาก (สร้างตอนบอสเกิดจะกระตุกก่อน cutscene เริ่ม)
+    private NFEffect preparedFX;
+    private Font preparedFont;
+    private Texture2D preparedVignette;
+
+    private void Start()
+    {
+        preparedFont = Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Tahoma" }, 32);
+        preparedFont.RequestCharactersInTexture(bossTitle + bossSubtitle, 96);
+        preparedVignette = MakeVignette();
+        if (summonVFX != null)
+        {
+            // สร้างยันต์ไว้หน้ากล้องที่เฟรมสุดท้าย (จางหายแล้ว มองไม่เห็น) ให้ mesh + shader พร้อม แบบ VFXManager.Prewarm
+            Camera cam = Camera.main;
+            Vector3 near = cam != null ? cam.transform.position + cam.transform.forward * 6f : Vector3.zero;
+            preparedFX = Instantiate(summonVFX, near, Quaternion.identity).GetComponent<NFEffect>();
+            preparedFX.loop = false;
+            preparedFX.playing = false;
+            preparedFX.time = preparedFX.Duration;
+        }
+    }
 
     private void Update()
     {
@@ -128,10 +149,10 @@ public class BossCutscene : MonoBehaviour
 
         // 3. ยันต์โลหิตเรียกบอส กล้องค่อย ๆ เลื่อนข้าง (dolly) ให้ภาพมีชีวิต
         // เวลาเกมหยุดอยู่ NFEffect เดินเองไม่ได้ เลยเลื่อนเวลาของเอฟเฟกต์เองด้วยเวลาจริง
-        NFEffect fx = null;
-        if (summonVFX != null)
+        NFEffect fx = preparedFX; // ใช้ตัวที่เตรียมไว้ตอนโหลดฉาก ไม่สร้างใหม่ตรงนี้
+        if (fx != null)
         {
-            fx = Instantiate(summonVFX, feet + Vector3.up * summonLift, Quaternion.Euler(0f, boss.transform.eulerAngles.y, 0f)).GetComponent<NFEffect>();
+            fx.transform.SetPositionAndRotation(feet + Vector3.up * summonLift, Quaternion.Euler(0f, boss.transform.eulerAngles.y, 0f));
             fx.transform.localScale = Vector3.one * summonScale;
             fx.loop = false;
             fx.playing = false;
@@ -274,7 +295,7 @@ public class BossCutscene : MonoBehaviour
         RectTransform vrt = vig.GetComponent<RectTransform>();
         vrt.anchorMin = Vector2.zero; vrt.anchorMax = Vector2.one; vrt.offsetMin = vrt.offsetMax = Vector2.zero;
         RawImage raw = vig.GetComponent<RawImage>();
-        raw.texture = MakeVignette();
+        raw.texture = preparedVignette != null ? preparedVignette : MakeVignette();
         raw.raycastTarget = false;
         raw.color = new Color(0.12f, 0f, 0f, 0f);
         vignette = raw;
@@ -290,7 +311,7 @@ public class BossCutscene : MonoBehaviour
         top = MakeBar(canvasObj.transform, "TopBar", new Vector2(0f, 1f));
         bottom = MakeBar(canvasObj.transform, "BottomBar", new Vector2(0f, 0f));
 
-        Font font = Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Tahoma" }, 32);
+        Font font = preparedFont != null ? preparedFont : Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Tahoma" }, 32);
         title = MakeText(canvasObj.transform, "Title", font, 96, new Vector2(0f, 260f));
         title.text = bossTitle;
         subtitle = MakeText(canvasObj.transform, "Subtitle", font, 36, new Vector2(0f, 185f));

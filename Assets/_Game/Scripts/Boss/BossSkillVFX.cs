@@ -19,6 +19,16 @@ public class BossSkillVFX : MonoBehaviour
     private float lastNormalized;
     private float searchTimer;
 
+    // เตรียมเอฟเฟกต์ไว้ตั้งแต่โหลดฉาก (สร้าง mesh + โหลด shader) วิธีเดียวกับตอน Boat ได้สกิล
+    // ถ้ารอทำตอนบอสเกิด จะกระตุกก่อน cutscene / ตอนบอสใช้สกิลครั้งแรก
+    private void Start()
+    {
+        Camera cam = Camera.main;
+        Vector3 near = cam != null ? cam.transform.position + cam.transform.forward * 6f : Vector3.zero;
+        VFXManager.Prewarm(craterBlast, near);
+        VFXManager.Prewarm(spearRing, near);
+    }
+
     private void Update()
     {
         if (boss == null)
@@ -31,10 +41,6 @@ public class BossSkillVFX : MonoBehaviour
             if (boss == null) return;
             bossAnimator = boss.GetComponentInChildren<Animator>();
             lastStateHash = 0;
-            // เตรียมเอฟเฟกต์ไว้ก่อน (สร้าง mesh + โหลด shader) ตอนบอสเพิ่งเกิด = ช่วง cutscene เกมหยุดอยู่
-            // ไม่งั้นบอสใช้สกิลครั้งแรกจะกระตุก — วิธีเดียวกับตอน Boat ได้สกิล (VFXManager.Prewarm)
-            VFXManager.Prewarm(craterBlast, boss.transform.position);
-            VFXManager.Prewarm(spearRing, boss.transform.position);
             return;
         }
         if (!boss.IsAlive || bossAnimator == null) return;
