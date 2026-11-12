@@ -55,6 +55,8 @@ public class BossCutscene : MonoBehaviour
     private void Update()
     {
         if (played) return;
+        // ยันต์ที่เตรียมไว้ ค้างที่เฟรมสุดท้าย (มองไม่เห็น) จนกว่าจะถึง cutscene
+        if (preparedFX != null && preparedFX.Duration > 0f) preparedFX.time = preparedFX.Duration;
         // หาทุกเฟรมจนกว่าจะเจอ (เดิมหาทุก 0.2 วิ บอสเลยกระโดดใส่ไปก่อน cutscene)
         OrcBoss boss = FindAnyObjectByType<OrcBoss>();
         if (boss == null || !boss.IsAlive) return;
