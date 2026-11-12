@@ -17,12 +17,14 @@ public class BossCutscene : MonoBehaviour
     [SerializeField] private string bossSubtitle = "เจ้าแห่งบัลลังก์โลหิต";
     [SerializeField] private float moveTime = 0.8f;         // กล้องเลื่อนไป/กลับกี่วิ
     [SerializeField] private float revealPoint = 0.55f;     // บอสโผล่ตอนยันต์เล่นไปกี่ส่วน
-    [SerializeField] private float holdAfterReveal = 1.6f;  // ค้างให้ดูบอสกับชื่อกี่วิ
+    [SerializeField] private float faceTime = 1.1f;         // โคลสอัปหน้ากี่วิ
+    [SerializeField] private float holdAfterReveal = 2.2f;  // ช็อตฮีโร่หมุนรอบตัว + ชื่อ กี่วิ
     [SerializeField] private float shakeStrength = 0.25f;
     [Header("โคลสอัปหน้าบอส (เท่าของความสูงบอส ยิ่งน้อยยิ่งใกล้)")]
-    [SerializeField] private float closeStart = 0.75f;  // ระยะกล้องตอนบอสเพิ่งโผล่
-    [SerializeField] private float closeEnd = 0.4f;     // ระยะกล้องตอนจบ (ดันเข้ามาถึงตรงนี้)
-    [SerializeField] private float closeZoomFov = 12f;  // ลด FOV ตอนโคลสอัป (ซูมเลนส์เข้าอีก)
+    [SerializeField] private float closeStart = 0.55f;  // ระยะกล้องตอนบอสเพิ่งโผล่
+    [SerializeField] private float closeEnd = 0.3f;     // ระยะกล้องตอนจบ (ดันเข้ามาถึงตรงนี้)
+    [SerializeField] private float closeZoomFov = 8f;   // ซูมกระแทกตอนบอสโผล่ (ลด FOV ชั่วครู่)
+    [SerializeField] private float cutsceneFov = 28f;   // เลนส์แคบตลอด cutscene = ภาพแน่น ไม่เห็นแมพ
 
     private bool played;
     private float searchTimer;
@@ -78,15 +80,28 @@ public class BossCutscene : MonoBehaviour
         Vector3 right = boss.transform.right;
         SetVisible(bossRenderers, false); // ซ่อนไว้ โผล่ออกมาจากยันต์
 
-        GameObject ui = BuildUI(out RectTransform topBar, out RectTransform bottomBar, out Text title, out Text subtitle);
+        GameObject ui = BuildUI(out RectTransform topBar, out RectTransform bottomBar, out Text title, out Text subtitle, out RawImage vignette, out Image flash);
         Vector3 startPos = cam.transform.position;
         Quaternion startRot = cam.transform.rotation;
         Vector3 offset = player != null ? startPos - player.transform.position : new Vector3(0f, 7f, -5.5f);
         float baseFov = cam.fieldOfView;
 
-        // ช็อต A: มุมต่ำกว้าง ๆ หน้าบอสเยื้องขวา เห็นวงยันต์ทั้งวง (กล้องมองเงยขึ้นนิด ๆ ให้บอสดูยักษ์)
-        Vector3 wideTarget = feet + Vector3.up * H * 0.45f;
-        Vector3 widePos = feet + fwd * H * 2.6f + right * H * 0.9f + Vector3.up * H * 0.35f;
+        // ซ่อน HUD กับตัว Boat ระหว่าง cutscene (ไม่บังหน้าบอส ไม่รกจอ)
+        List<Canvas> hiddenCanvases = new List<Canvas>();
+        foreach (Canvas c in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+        {
+            if (c.isRootCanvas && c.enabled && c.gameObject != ui) { c.enabled = false; hiddenCanvases.Add(c); }
+        }
+        List<Renderer> playerRenderers = new List<Renderer>();
+        if (player != null)
+        {
+            foreach (Renderer r in player.GetComponentsInChildren<Renderer>()) if (r.enabled) playerRenderers.Add(r);
+            SetVisible(playerRenderers, false);
+        }
+
+        // ช็อต A: มองลงจากหน้าบอส เห็นวงยันต์เต็มจอ เลนส์แคบ (FOV ต่ำ) ภาพจะมีแต่พื้นกับยันต์ ไม่เห็นขอบแมพ
+        Vector3 wideTarget = feet + Vector3.up * H * 0.15f;
+        Vector3 widePos = feet + fwd * H * 1.7f + right * H * 0.5f + Vector3.up * H * 1.5f;
         Quaternion wideRot = Quaternion.LookRotation(wideTarget - widePos);
         // ช็อต B: โคลสอัปหน้าบอส มุมต่ำ ค่อย ๆ ดันกล้องเข้า (push-in) + โค้งเข้าหาหน้าตรง
         Vector3 closeFrom = head + fwd * H * closeStart + right * H * 0.3f - Vector3.up * H * 0.1f;
@@ -97,7 +112,9 @@ public class BossCutscene : MonoBehaviour
         {
             float e = Mathf.SmoothStep(0f, 1f, k);
             cam.transform.SetPositionAndRotation(Vector3.Lerp(startPos, widePos, e), Quaternion.Slerp(startRot, wideRot, e));
+            if (!cam.orthographic) cam.fieldOfView = Mathf.Lerp(baseFov, cutsceneFov, e);
             SetBars(topBar, bottomBar, e);
+            vignette.color = new Color(0.12f, 0f, 0f, 0.85f * e);
         });
 
         // 3. ยันต์โลหิตเรียกบอส กล้องค่อย ๆ เลื่อนข้าง (dolly) ให้ภาพมีชีวิต
@@ -113,7 +130,7 @@ public class BossCutscene : MonoBehaviour
         }
         float fxTime = fx != null && fx.Duration > 0f ? fx.Duration : 2f;
         float summonTime = fxTime * revealPoint;
-        Vector3 wideEnd = widePos - right * H * 0.5f + fwd * H * 0.2f;
+        Vector3 wideEnd = widePos - right * H * 0.8f - Vector3.up * H * 0.3f; // หมุนรอบวงยันต์ช้า ๆ
         yield return Animate(summonTime, k =>
         {
             if (fx != null) fx.time = k * summonTime;
@@ -121,26 +138,49 @@ public class BossCutscene : MonoBehaviour
             cam.transform.SetPositionAndRotation(p, Quaternion.LookRotation(wideTarget - p));
         });
 
-        // 4. บอสโผล่ -> ตัดเป็นโคลสอัปหน้า + จอสั่น + ซูมกระแทก (FOV แคบลงแล้วคืน) + ชื่อขึ้น
+        // 4. บอสโผล่: แฟลชแดงขาวเต็มจอ -> ตัดโคลสอัปหน้าบอส ดันกล้องเข้า + จอสั่น + ซูมกระแทก
         SetVisible(bossRenderers, true);
         float shownTime = 0f;
-        while (shownTime < holdAfterReveal)
+        while (shownTime < faceTime)
         {
             shownTime += Time.unscaledDeltaTime;
-            float k = Mathf.Clamp01(shownTime / holdAfterReveal);
+            float k = Mathf.Clamp01(shownTime / faceTime);
             if (fx != null) fx.time = Mathf.Min(fxTime, summonTime + shownTime);
             Vector3 p = Vector3.Lerp(closeFrom, closeTo, 1f - Mathf.Pow(1f - k, 3f)); // เร็วตอนแรก ช้าตอนท้าย
             float shake = Mathf.Max(0f, 1f - shownTime / 0.6f) * shakeStrength;
             p += (Vector3)(Random.insideUnitCircle * shake);
             cam.transform.SetPositionAndRotation(p, Quaternion.LookRotation(head - p));
-            if (!cam.orthographic) cam.fieldOfView = baseFov - closeZoomFov - 10f * Mathf.Max(0f, 1f - shownTime / 0.4f); // แคบลง = ซูมเข้าหน้า
-            float a = Mathf.Clamp01(shownTime / 0.3f);
-            title.color = new Color(1f, 0.85f, 0.4f, a);
-            subtitle.color = new Color(1f, 0.6f, 0.55f, a);
-            title.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.4f, 1f, a);
+            if (!cam.orthographic) cam.fieldOfView = cutsceneFov - closeZoomFov * Mathf.Max(0f, 1f - shownTime / 0.4f);
+            flash.color = new Color(1f, 0.55f, 0.45f, Mathf.Max(0f, 1f - shownTime / 0.35f)); // แฟลชจางใน 0.35 วิ
             yield return null;
         }
-        if (!cam.orthographic) cam.fieldOfView = baseFov;
+
+        // 5. ช็อตฮีโร่: มุมต่ำมาก กล้องหมุนรอบตัวบอสครึ่งวง เห็นเต็มตัวทะมึน + ชื่อกระแทกลงจอ
+        float heroDist = H * 1.6f;
+        float startAngle = 35f, endAngle = -35f; // องศารอบตัวบอส (0 = หน้าตรง)
+        shownTime = 0f;
+        while (shownTime < holdAfterReveal)
+        {
+            shownTime += Time.unscaledDeltaTime;
+            float k = Mathf.Clamp01(shownTime / holdAfterReveal);
+            if (fx != null) fx.time = Mathf.Min(fxTime, summonTime + faceTime + shownTime);
+            float ang = Mathf.Lerp(startAngle, endAngle, Mathf.SmoothStep(0f, 1f, k));
+            Vector3 dir = Quaternion.AngleAxis(ang, Vector3.up) * fwd;
+            Vector3 p = feet + dir * heroDist + Vector3.up * H * 0.15f;           // ต่ำระดับเข่า มองเงย
+            Vector3 look = feet + Vector3.up * H * 0.7f;
+            float shake = Mathf.Max(0f, 1f - shownTime / 0.35f) * shakeStrength * 0.6f;
+            p += (Vector3)(Random.insideUnitCircle * shake);
+            cam.transform.SetPositionAndRotation(p, Quaternion.LookRotation(look - p));
+            if (!cam.orthographic) cam.fieldOfView = cutsceneFov + 12f;            // กว้างขึ้นนิดให้เห็นทั้งตัว
+            // ชื่อกระแทก: ใหญ่ -> ปกติ ใน 0.25 วิ, ซับไตเติลตามมา
+            float ta = Mathf.Clamp01(shownTime / 0.25f);
+            title.color = new Color(1f, 0.85f, 0.4f, ta);
+            title.rectTransform.localScale = Vector3.one * Mathf.Lerp(2.2f, 1f, 1f - Mathf.Pow(1f - ta, 3f));
+            float sa = Mathf.Clamp01((shownTime - 0.3f) / 0.4f);
+            subtitle.color = new Color(1f, 0.6f, 0.55f, sa);
+            flash.color = new Color(1f, 0.85f, 0.6f, Mathf.Max(0f, 0.6f - shownTime / 0.25f)); // แฟลชตอนชื่อลง
+            yield return null;
+        }
 
         // 5. กล้องกลับมาที่ Boat มุมเกมเดิม แถบดำออก
         Vector3 fromPos = cam.transform.position;
@@ -151,12 +191,17 @@ public class BossCutscene : MonoBehaviour
             float e = Mathf.SmoothStep(0f, 1f, k);
             cam.transform.SetPositionAndRotation(Vector3.Lerp(fromPos, backPos, e), Quaternion.Slerp(fromRot, startRot, e));
             SetBars(topBar, bottomBar, 1f - e);
+            if (!cam.orthographic) cam.fieldOfView = Mathf.Lerp(cutsceneFov, baseFov, e);
+            vignette.color = new Color(0.12f, 0f, 0f, 0.85f * (1f - e));
             title.color = new Color(1f, 0.85f, 0.4f, 1f - e);
             subtitle.color = new Color(1f, 0.6f, 0.55f, 1f - e);
         });
 
         // 6. คืนทุกอย่าง แล้วเริ่มสู้
         cam.transform.rotation = startRot;
+        if (!cam.orthographic) cam.fieldOfView = baseFov;
+        foreach (Canvas c in hiddenCanvases) if (c != null) c.enabled = true;
+        SetVisible(playerRenderers, true);
         Destroy(ui);
         if (fx != null) Destroy(fx.gameObject);
         if (follow != null) follow.enabled = true;
@@ -202,7 +247,7 @@ public class BossCutscene : MonoBehaviour
         bottom.sizeDelta = new Vector2(0f, h);
     }
 
-    private GameObject BuildUI(out RectTransform top, out RectTransform bottom, out Text title, out Text subtitle)
+    private GameObject BuildUI(out RectTransform top, out RectTransform bottom, out Text title, out Text subtitle, out RawImage vignette, out Image flash)
     {
         GameObject canvasObj = new GameObject("BossIntroCanvas", typeof(Canvas), typeof(CanvasScaler));
         Canvas canvas = canvasObj.GetComponent<Canvas>();
@@ -213,6 +258,25 @@ public class BossCutscene : MonoBehaviour
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 0.5f;
 
+        // ขอบจอมืดแดง (vignette) กลบฉากหลัง ให้สายตาไปอยู่ที่บอสตรงกลาง
+        GameObject vig = new GameObject("Vignette", typeof(RectTransform), typeof(RawImage));
+        vig.transform.SetParent(canvasObj.transform, false);
+        RectTransform vrt = vig.GetComponent<RectTransform>();
+        vrt.anchorMin = Vector2.zero; vrt.anchorMax = Vector2.one; vrt.offsetMin = vrt.offsetMax = Vector2.zero;
+        RawImage raw = vig.GetComponent<RawImage>();
+        raw.texture = MakeVignette();
+        raw.raycastTarget = false;
+        raw.color = new Color(0.12f, 0f, 0f, 0f);
+        vignette = raw;
+        // แฟลชเต็มจอตอนบอสโผล่
+        GameObject fl = new GameObject("Flash", typeof(RectTransform), typeof(Image));
+        fl.transform.SetParent(canvasObj.transform, false);
+        RectTransform frt = fl.GetComponent<RectTransform>();
+        frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one; frt.offsetMin = frt.offsetMax = Vector2.zero;
+        flash = fl.GetComponent<Image>();
+        flash.color = new Color(1f, 1f, 1f, 0f);
+        flash.raycastTarget = false;
+
         top = MakeBar(canvasObj.transform, "TopBar", new Vector2(0f, 1f));
         bottom = MakeBar(canvasObj.transform, "BottomBar", new Vector2(0f, 0f));
 
@@ -222,6 +286,27 @@ public class BossCutscene : MonoBehaviour
         subtitle = MakeText(canvasObj.transform, "Subtitle", font, 36, new Vector2(0f, -410f));
         subtitle.text = bossSubtitle;
         return canvasObj;
+    }
+
+    // ภาพวงรีมืดขอบจอ (กลางใส ขอบทึบ) สร้างเองไม่ต้องมีไฟล์รูป
+    private static Texture2D MakeVignette()
+    {
+        const int size = 128;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.wrapMode = TextureWrapMode.Clamp;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dx = (x + 0.5f) / size * 2f - 1f;
+                float dy = (y + 0.5f) / size * 2f - 1f;
+                float d = Mathf.Sqrt(dx * dx + dy * dy);
+                float a = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.45f, 1.2f, d));
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+            }
+        }
+        tex.Apply();
+        return tex;
     }
 
     private static RectTransform MakeBar(Transform parent, string objName, Vector2 anchorY)
