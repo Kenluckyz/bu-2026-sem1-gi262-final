@@ -98,8 +98,8 @@ public class DashAfterImage : MonoBehaviour
             parts[i].sharedMesh.RecalculateBounds();      // ไม่คำนวณกรอบใหม่ = กรอบขนาด 0 กล้องตัดทิ้ง มองไม่เห็น
             parts[i].transform.SetPositionAndRotation(skins[i].transform.position, skins[i].transform.rotation);
             // กันขนาดเพี้ยน: เทียบความสูงเงากับความสูงตัวจริง (skin.bounds) แล้วขยายให้เท่ากัน
-            float meshHeight = parts[i].sharedMesh.bounds.size.y;
-            float realHeight = skins[i].bounds.size.y;
+            float meshHeight = parts[i].sharedMesh.bounds.size.magnitude; // ใช้ความยาวทแยง ไม่สนว่าโมเดลหมุนแกนไหน
+            float realHeight = skins[i].bounds.size.magnitude;
             float fix = meshHeight > 0.0001f ? realHeight / meshHeight : 1f;
             parts[i].transform.localScale = new Vector3(fix, fix, fix);
         }
