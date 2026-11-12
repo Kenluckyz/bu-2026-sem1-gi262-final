@@ -61,6 +61,8 @@ public class Player : Character
     [Header("Dodge (Shift)")]
     [SerializeField] private float dodgeCooldown = 2f;   // กลิ้งหลบด้วย Shift: ไม่มีดาเมจ แค่หลบ (คนละอย่างกับสกิล Dash)
     private float lastDodgeTime = -99f;
+    public float DodgeCooldown => dodgeCooldown;
+    public float DodgeCooldownRemaining => Mathf.Max(0f, dodgeCooldown - (Time.time - lastDodgeTime));
     [SerializeField] private Color afterImageColor = new Color(0.45f, 0.8f, 1f, 0.3f); // สีเงาร่างตอนหลบ
     [SerializeField] private float afterImageInterval = 0.08f; // ทิ้งเงาทุกกี่วินาที
     [SerializeField] private float afterImageLife = 0.25f;     // เงาจางหมดในกี่วินาที
