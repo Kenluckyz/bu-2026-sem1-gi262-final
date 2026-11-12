@@ -9,7 +9,7 @@ public static class BossFXSceneBuilder
 {
     private const string ScenePath = "Assets/_Game/Scenes/Gameplay.unity";
     private const string ObjectName = "BossFX";
-    private const string VFXFolder = "Assets/_Game/VFX/Boss/";
+    private const string VFXFolder = "Assets/_Game/VFX/";
 
     [MenuItem("BoatVsBoss/Boss/Add Boss VFX + Intro Cutscene to Gameplay Scene")]
     public static void AddToGameplayScene()
@@ -19,12 +19,12 @@ public static class BossFXSceneBuilder
             Debug.LogError("กด Stop ก่อน แล้วค่อยกดเมนูนี้");
             return;
         }
-        GameObject crater = LoadVFX("CraterBlast");
-        GameObject spear = LoadVFX("SpearRing");
-        GameObject summon = LoadVFX("CursedTalismans");
+        GameObject crater = LoadVFX("BossCraterBlast");
+        GameObject spear = LoadVFX("BossSpearRing");
+        GameObject summon = LoadVFX("BossTalismans");
         if (crater == null || spear == null || summon == null)
         {
-            Debug.LogError("ยังไม่มี prefab เอฟเฟกต์บอส รอ Unity import โฟลเดอร์ VFX/Boss เสร็จ (NightForgeImporter สร้าง all.prefab ให้) แล้วกดใหม่");
+            Debug.LogError("ยังไม่มี prefab เอฟเฟกต์บอส รอ Unity import โฟลเดอร์ VFX/Boss* เสร็จ (NFEffectImporter สร้าง prefab ให้) แล้วกดใหม่");
             return;
         }
 
@@ -54,6 +54,6 @@ public static class BossFXSceneBuilder
 
     private static GameObject LoadVFX(string folder)
     {
-        return AssetDatabase.LoadAssetAtPath<GameObject>(VFXFolder + folder + "/all.prefab");
+        return AssetDatabase.LoadAssetAtPath<GameObject>(VFXFolder + folder + "/" + folder + ".prefab"); // NFEffectImporter สร้าง <โฟลเดอร์>.prefab
     }
 }

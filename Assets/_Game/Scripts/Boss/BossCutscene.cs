@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using NightForge;
 
 // Cutscene ตอนบอส Orc เกิด: แถบดำแบบหนัง -> กล้องไปหาบอส -> ยันต์โลหิตเรียกบอสออกมา + จอสั่น
 // -> ชื่อบอสขึ้นกลางจอ -> กล้องกลับมาที่ Boat แล้วเริ่มสู้
@@ -10,8 +11,8 @@ using UnityEngine.UI;
 // ไม่แก้ OrcBoss / DungeonManager / CameraFollow ของเพื่อน แค่ปิดชั่วคราวแล้วเปิดคืน
 public class BossCutscene : MonoBehaviour
 {
-    [SerializeField] private GameObject summonVFX;          // VFX/Boss/CursedTalismans/all.prefab
-    [SerializeField] private float summonSize = 7f;
+    [SerializeField] private GameObject summonVFX;          // VFX/BossTalismans/BossTalismans.prefab (3D)
+    [SerializeField] private float summonScale = 1.6f;
     [SerializeField] private string bossTitle = "ORC WARLORD";
     [SerializeField] private string bossSubtitle = "เจ้าแห่งบัลลังก์โลหิต";
     [SerializeField] private float moveTime = 0.8f;         // กล้องเลื่อนไป/กลับกี่วิ
@@ -69,9 +70,18 @@ public class BossCutscene : MonoBehaviour
         });
 
         // 3. ยันต์โลหิตเรียกบอส
-        GameObject fx = BossSkillVFX.Play(summonVFX, boss.transform.position + Vector3.up * 0.6f, summonSize, true);
-        float fxTime = fx != null ? fx.GetComponent<ParticleSystem>().main.duration : 2f;
-        yield return Wait(fxTime * revealPoint);
+        // เวลาเกมหยุดอยู่ NFEffect เดินเองไม่ได้ เลยเลื่อนเวลาของเอฟเฟกต์เองด้วยเวลาจริง
+        NFEffect fx = null;
+        if (summonVFX != null)
+        {
+            fx = Instantiate(summonVFX, boss.transform.position, Quaternion.Euler(0f, boss.transform.eulerAngles.y, 0f)).GetComponent<NFEffect>();
+            fx.transform.localScale = Vector3.one * summonScale;
+            fx.loop = false;
+            fx.playing = false;
+            fx.time = 0f;
+        }
+        float fxTime = fx != null && fx.Duration > 0f ? fx.Duration : 2f;
+        yield return Animate(fxTime * revealPoint, k => { if (fx != null) fx.time = k * fxTime * revealPoint; });
 
         // 4. บอสโผล่ + จอสั่น + ชื่อขึ้น
         SetVisible(bossRenderers, true);
@@ -79,6 +89,7 @@ public class BossCutscene : MonoBehaviour
         while (shownTime < holdAfterReveal)
         {
             shownTime += Time.unscaledDeltaTime;
+            if (fx != null) fx.time = Mathf.Min(fxTime, fxTime * revealPoint + shownTime);
             float shake = Mathf.Max(0f, 1f - shownTime / 0.6f) * shakeStrength;
             cam.transform.position = bossPos + (Vector3)(Random.insideUnitCircle * shake);
             float a = Mathf.Clamp01(shownTime / 0.3f);
@@ -101,7 +112,7 @@ public class BossCutscene : MonoBehaviour
 
         // 6. คืนทุกอย่าง แล้วเริ่มสู้
         Destroy(ui);
-        if (fx != null) Destroy(fx);
+        if (fx != null) Destroy(fx.gameObject);
         if (follow != null) follow.enabled = true;
         if (boss != null) boss.enabled = true;
         if (player != null && player.IsAlive) player.enabled = true;

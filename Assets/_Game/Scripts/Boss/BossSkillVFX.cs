@@ -7,11 +7,11 @@ using UnityEngine;
 public class BossSkillVFX : MonoBehaviour
 {
     [Header("เอฟเฟกต์ (ตั้งให้อัตโนมัติจากเมนู)")]
-    [SerializeField] private GameObject craterBlast;   // VFX/Boss/CraterBlast/all.prefab
-    [SerializeField] private GameObject spearRing;     // VFX/Boss/SpearRing/all.prefab
-    [SerializeField] private float craterSize = 7f;    // ขนาด (เมตร) ปรับให้พอดีวงดาเมจ
-    [SerializeField] private float spearRingSize = 11f;
-    [SerializeField] private float groundLift = 0.6f;  // ยกขึ้นจากพื้นนิดหน่อย ไม่จมพื้น
+    [SerializeField] private GameObject craterBlast;   // VFX/BossCraterBlast/BossCraterBlast.prefab (3D แบบสกิลของ Boat)
+    [SerializeField] private GameObject spearRing;     // VFX/BossSpearRing/BossSpearRing.prefab
+    [SerializeField] private float craterScale = 1.8f;   // ขยายจากขนาดใน Lab ปรับให้พอดีวงดาเมจ
+    [SerializeField] private float spearRingScale = 2.2f;
+    [SerializeField] private float groundLift = 0.05f;   // ยกจากพื้นนิดเดียว ไม่จมพื้น
 
     private OrcBoss boss;
     private Animator bossAnimator;
@@ -47,12 +47,12 @@ public class BossSkillVFX : MonoBehaviour
         {
             // หัวขวานลงข้างหน้าบอส
             Vector3 pos = boss.transform.position + boss.transform.forward * 2f * boss.transform.localScale.x;
-            Play(craterBlast, pos + Vector3.up * groundLift, craterSize);
+            PlayVFX(craterBlast, pos, craterScale);
         }
         if (info.IsName("Attack1") && Crossed(boss.slamHitPoint, t))
         {
             Vector3 pos = boss.transform.position + boss.transform.forward * boss.slamForward;
-            Play(spearRing, pos + Vector3.up * groundLift, spearRingSize);
+            PlayVFX(spearRing, pos, spearRingScale);
         }
         lastNormalized = t;
     }
@@ -63,21 +63,11 @@ public class BossSkillVFX : MonoBehaviour
         return lastNormalized < point && now >= point;
     }
 
-    // เล่นเอฟเฟกต์ sprite sheet ครั้งเดียวแล้วลบทิ้ง
-    public static GameObject Play(GameObject prefab, Vector3 position, float size, bool unscaled = false)
+    // ใช้ VFXManager เดียวกับสกิลของ Boat (Object Pool) หันตามบอส เล่นตามความยาวจริงของเอฟเฟกต์
+    private void PlayVFX(GameObject prefab, Vector3 position, float scale)
     {
-        if (prefab == null) return null;
-        GameObject fx = Instantiate(prefab, position, Quaternion.identity);
-        ParticleSystem ps = fx.GetComponent<ParticleSystem>();
-        if (ps == null) return fx;
-        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-        ParticleSystem.MainModule main = ps.main;
-        main.loop = false;                      // ไฟล์จาก Lab ตั้งวนไว้ เราเล่นรอบเดียว
-        main.scalingMode = ParticleSystemScalingMode.Hierarchy;
-        main.useUnscaledTime = unscaled;        // cutscene หยุดเวลาเกม เอฟเฟกต์ยังต้องเล่น
-        fx.transform.localScale = Vector3.one * (size / 2f); // prefab สูง 2 เมตร
-        ps.Play(true);
-        Destroy(fx, main.duration + 0.2f);      // Destroy ใช้เวลาเกม ถ้าหยุดเวลาจะลบทีหลังเอง
-        return fx;
+        Vector3 ground = new Vector3(position.x, boss.transform.position.y + groundLift, position.z);
+        Quaternion rotation = Quaternion.Euler(0f, boss.transform.eulerAngles.y, 0f);
+        VFXManager.Play(prefab, ground, rotation, scale, 0f);
     }
 }
