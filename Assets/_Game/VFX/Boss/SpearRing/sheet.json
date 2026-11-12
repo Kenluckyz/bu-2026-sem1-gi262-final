@@ -1,0 +1,314 @@
+{
+  "app": "night-forge-vfx-lab",
+  "version": 2,
+  "frames": 72,
+  "fps": 30,
+  "frame_width": 256,
+  "frame_height": 256,
+  "columns": 8,
+  "rows": 9,
+  "duration": 2.35,
+  "background": "transparent",
+  "style": "glow",
+  "sheets": [
+    "all.png"
+  ],
+  "note": "frames read left to right, top to bottom",
+  "export_id": "KWplS7ypCpXtoySbfMTK9BwZ44gBaJfBX2Wx26Uf6PxIs_m2bc7o8yGkyZBB1F-Welm_d2rCkyNSnt9J",
+  "comp": {
+    "name": "หอกผุดทะลวงวง (Spear Ring Eruption)",
+    "theme": "แดงเลือด",
+    "style": "glow",
+    "order": "layer",
+    "layers": [
+      {
+        "part": "groundcrack",
+        "name": "พื้นแตก",
+        "params": {
+          "look": "crater",
+          "radius": 2.4,
+          "branches": 14,
+          "width": 4,
+          "spread": 0.2,
+          "life": 2.2,
+          "debris": true,
+          "pal": [
+            "#140405",
+            "#5a0a10",
+            "#ff2a2a",
+            "#ff8a6a",
+            "#fff0e4"
+          ],
+          "glow": 1.6,
+          "seed": 5
+        },
+        "tf": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0,
+          "s": 1,
+          "mirror": false,
+          "face": "off"
+        },
+        "start": 0.15,
+        "speed": 1,
+        "on": true
+      },
+      {
+        "part": "weapon",
+        "name": "หอก 1",
+        "params": {
+          "shape": "spear",
+          "motion": "rise",
+          "ending": "sink",
+          "height": 2.4,
+          "plunge": 0.2,
+          "width": 0.8,
+          "thick": 1,
+          "opacity": 1,
+          "drop": 0.18,
+          "hold": 0.9,
+          "endT": 0.5,
+          "sparkles": 10,
+          "shock": false,
+          "pal": [
+            "#140405",
+            "#5a0a10",
+            "#ff2a2a",
+            "#ff8a6a",
+            "#fff0e4"
+          ],
+          "glow": 1.8,
+          "seed": 1
+        },
+        "tf": {
+          "x": 1.72,
+          "y": 0,
+          "z": 0.53,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0,
+          "s": 1,
+          "mirror": false,
+          "face": "off"
+        },
+        "start": 0.25,
+        "speed": 1,
+        "on": true
+      },
+      {
+        "part": "weapon",
+        "name": "หอก 2",
+        "params": {
+          "shape": "spear",
+          "motion": "rise",
+          "ending": "sink",
+          "height": 2.4,
+          "plunge": 0.2,
+          "width": 0.8,
+          "thick": 1,
+          "opacity": 1,
+          "drop": 0.18,
+          "hold": 0.9,
+          "endT": 0.5,
+          "sparkles": 10,
+          "shock": false,
+          "pal": [
+            "#140405",
+            "#5a0a10",
+            "#ff2a2a",
+            "#ff8a6a",
+            "#fff0e4"
+          ],
+          "glow": 1.8,
+          "seed": 2
+        },
+        "tf": {
+          "x": 0.4,
+          "y": 0,
+          "z": 1.76,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0,
+          "s": 1,
+          "mirror": false,
+          "face": "off"
+        },
+        "start": 0.32,
+        "speed": 1,
+        "on": true
+      },
+      {
+        "part": "weapon",
+        "name": "หอก 3",
+        "params": {
+          "shape": "spear",
+          "motion": "rise",
+          "ending": "sink",
+          "height": 2.4,
+          "plunge": 0.2,
+          "width": 0.8,
+          "thick": 1,
+          "opacity": 1,
+          "drop": 0.18,
+          "hold": 0.9,
+          "endT": 0.5,
+          "sparkles": 10,
+          "shock": false,
+          "pal": [
+            "#140405",
+            "#5a0a10",
+            "#ff2a2a",
+            "#ff8a6a",
+            "#fff0e4"
+          ],
+          "glow": 1.8,
+          "seed": 3
+        },
+        "tf": {
+          "x": -1.32,
+          "y": 0,
+          "z": 1.22,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0,
+          "s": 1,
+          "mirror": false,
+          "face": "off"
+        },
+        "start": 0.39,
+        "speed": 1,
+        "on": true
+      },
+      {
+        "part": "weapon",
+        "name": "หอก 4",
+        "params": {
+          "shape": "spear",
+          "motion": "rise",
+          "ending": "sink",
+          "height": 2.4,
+          "plunge": 0.2,
+          "width": 0.8,
+          "thick": 1,
+          "opacity": 1,
+          "drop": 0.18,
+          "hold": 0.9,
+          "endT": 0.5,
+          "sparkles": 10,
+          "shock": false,
+          "pal": [
+            "#140405",
+            "#5a0a10",
+            "#ff2a2a",
+            "#ff8a6a",
+            "#fff0e4"
+          ],
+          "glow": 1.8,
+          "seed": 4
+        },
+        "tf": {
+          "x": -1.72,
+          "y": 0,
+          "z": -0.53,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0,
+          "s": 1,
+          "mirror": false,
+          "face": "off"
+        },
+        "start": 0.46,
+        "speed": 1,
+        "on": true
+      },
+      {
+        "part": "weapon",
+        "name": "หอก 5",
+        "params": {
+          "shape": "spear",
+          "motion": "rise",
+          "ending": "sink",
+          "height": 2.4,
+          "plunge": 0.2,
+          "width": 0.8,
+          "thick": 1,
+          "opacity": 1,
+          "drop": 0.18,
+          "hold": 0.9,
+          "endT": 0.5,
+          "sparkles": 10,
+          "shock": false,
+          "pal": [
+            "#140405",
+            "#5a0a10",
+            "#ff2a2a",
+            "#ff8a6a",
+            "#fff0e4"
+          ],
+          "glow": 1.8,
+          "seed": 5
+        },
+        "tf": {
+          "x": -0.4,
+          "y": 0,
+          "z": -1.76,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0,
+          "s": 1,
+          "mirror": false,
+          "face": "off"
+        },
+        "start": 0.53,
+        "speed": 1,
+        "on": true
+      },
+      {
+        "part": "weapon",
+        "name": "หอก 6",
+        "params": {
+          "shape": "spear",
+          "motion": "rise",
+          "ending": "sink",
+          "height": 2.4,
+          "plunge": 0.2,
+          "width": 0.8,
+          "thick": 1,
+          "opacity": 1,
+          "drop": 0.18,
+          "hold": 0.9,
+          "endT": 0.5,
+          "sparkles": 10,
+          "shock": false,
+          "pal": [
+            "#140405",
+            "#5a0a10",
+            "#ff2a2a",
+            "#ff8a6a",
+            "#fff0e4"
+          ],
+          "glow": 1.8,
+          "seed": 6
+        },
+        "tf": {
+          "x": 1.32,
+          "y": 0,
+          "z": -1.22,
+          "rx": 0,
+          "ry": 0,
+          "rz": 0,
+          "s": 1,
+          "mirror": false,
+          "face": "off"
+        },
+        "start": 0.6,
+        "speed": 1,
+        "on": true
+      }
+    ]
+  }
+}
