@@ -71,7 +71,7 @@ public static class UpgradeSceneBuilder
         Debug.Log("ใส่ UpgradeSystem ลงซีน Gameplay แล้ว (" + upgrades.Count + " อัปเกรด) กด Play แล้วฆ่าศัตรูจนเลเวลอัปได้เลย");
     }
 
-    // ไฟล์ตัวอย่าง: สกิลของ Boat 4 ตัว + ค่าสถานะ 3 ตัว (มีไฟล์อยู่แล้วจะอัปเดตค่า ไม่สร้างซ้ำ)
+    // ไฟล์ตัวอย่าง: สกิลของ Boat 3 ตัว (มีไฟล์อยู่แล้วจะอัปเดตค่า ไม่สร้างซ้ำ)
     private static List<UpgradeData> CreateUpgradeData()
     {
         if (!AssetDatabase.IsValidFolder(UpgradeFolder))
@@ -83,10 +83,7 @@ public static class UpgradeSceneBuilder
         AddSkill(result, "Dash", "พุ่งไปข้างหน้า ทำดาเมจศัตรูที่พุ่งผ่าน และหลบการโจมตีระหว่างพุ่ง");
         AddSkill(result, "OverPunch", "ต่อยแรงเป็นรูปกรวยข้างหน้า โดนศัตรูหลายตัว");
         AddSkill(result, "FinalExecution", "ท่าไม้ตายดาเมจสูง ปิดเกมศัตรูที่อยู่ใกล้");
-        AddSkill(result, "MetalHeart", "พาสซีฟ: ร่างเหล็ก เพิ่มดาเมจให้ทุกการโจมตี");
-        AddStat(result, "Stat_MaxHP", "Max HP", StatType.MaxHP, 20f, false, "เลือดสูงสุด +20 และฟื้นเลือดเท่านั้นทันที");
-        AddStat(result, "Stat_Damage", "Damage", StatType.Damage, 0.15f, true, "ดาเมจพื้นฐาน +15%");
-        AddStat(result, "Stat_Speed", "Move Speed", StatType.MoveSpeed, 0.1f, true, "เดินเร็วขึ้น 10%");
+        // อัปแค่สกิล 3 ตัว (ช่องสกิลปุ่ม 1/2/3) — อยากได้ Stat เพิ่มภายหลังใช้ AddStat(...) ได้
         AssetDatabase.SaveAssets();
         return result;
     }
