@@ -31,7 +31,9 @@ MonoBehaviour:
   vfxScale: 2.5
   vfxTime: 1
   vfxForward: 0
+  vfxSide: 0
   vfxHeight: 0
+  vfxBone: 55
   vfxRotation: {x: 0, y: -90, z: 0}
   vfxFollow: 0
   statType: 1
