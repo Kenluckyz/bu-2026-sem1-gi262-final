@@ -97,11 +97,7 @@ public class DashAfterImage : MonoBehaviour
             skins[i].BakeMesh(parts[i].sharedMesh, false); // false: ไม่คูณ scale ซ้ำ (โมเดล FBX scale 0.01 คูณแล้วเงาเล็กจิ๋ว)
             parts[i].sharedMesh.RecalculateBounds();      // ไม่คำนวณกรอบใหม่ = กรอบขนาด 0 กล้องตัดทิ้ง มองไม่เห็น
             parts[i].transform.SetPositionAndRotation(skins[i].transform.position, skins[i].transform.rotation);
-            // กันขนาดเพี้ยน: เทียบความสูงเงากับความสูงตัวจริง (skin.bounds) แล้วขยายให้เท่ากัน
-            float meshHeight = parts[i].sharedMesh.bounds.size.magnitude; // ใช้ความยาวทแยง ไม่สนว่าโมเดลหมุนแกนไหน
-            float realHeight = skins[i].bounds.size.magnitude;
-            float fix = meshHeight > 0.0001f ? realHeight / meshHeight : 1f;
-            parts[i].transform.localScale = new Vector3(fix, fix, fix);
+            parts[i].transform.localScale = Vector3.one; // BakeMesh(false) ได้ขนาดจริงอยู่แล้ว
         }
     }
 
