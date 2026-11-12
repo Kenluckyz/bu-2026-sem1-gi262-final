@@ -33,7 +33,7 @@ public class DashAfterImage : MonoBehaviour
         ghost.lifeTime = life;
         ghost.timer = 0f;
         ghost.ApplyColor(tint.a);
-        if (!loggedOnce)
+        if (!loggedOnce || ghost.parts[0].GetComponent<MeshRenderer>().bounds.size.y < 0.5f)
         {
             loggedOnce = true;
             Bounds b = ghost.parts[0].GetComponent<MeshRenderer>().bounds;
@@ -94,9 +94,10 @@ public class DashAfterImage : MonoBehaviour
             bool used = i < skins.Length;
             parts[i].gameObject.SetActive(used);
             if (!used) continue;
-            skins[i].BakeMesh(parts[i].sharedMesh, true); // true = ใส่ scale ของโมเดลด้วย
+            skins[i].BakeMesh(parts[i].sharedMesh, false); // false: ไม่คูณ scale ซ้ำ (โมเดล FBX scale 0.01 คูณแล้วเงาเล็กจิ๋ว)
             parts[i].sharedMesh.RecalculateBounds();      // ไม่คำนวณกรอบใหม่ = กรอบขนาด 0 กล้องตัดทิ้ง มองไม่เห็น
             parts[i].transform.SetPositionAndRotation(skins[i].transform.position, skins[i].transform.rotation);
+            parts[i].transform.localScale = Vector3.one;
         }
     }
 
