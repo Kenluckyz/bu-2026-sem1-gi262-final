@@ -35,13 +35,32 @@ public class DashAfterImage : MonoBehaviour
     {
         if (sharedMaterial == null)
         {
-            // Sprites/Default โปร่งใสได้และไม่ต้องมีแสง ใช้กับ mesh ได้
-            sharedMaterial = new Material(Shader.Find("Sprites/Default"));
+            sharedMaterial = CreateGhostMaterial();
         }
         GameObject obj = new GameObject("DashAfterImage");
         DashAfterImage ghost = obj.AddComponent<DashAfterImage>();
         ghost.block = new MaterialPropertyBlock();
         return ghost;
+    }
+
+    // วัสดุโปร่งใสไม่รับแสง: ใช้ URP Unlit ตั้งเป็น Transparent (ถ้าไม่มีใช้ Sprites/Default แทน)
+    private static Material CreateGhostMaterial()
+    {
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null)
+        {
+            return new Material(Shader.Find("Sprites/Default"));
+        }
+        Material mat = new Material(shader);
+        mat.SetFloat("_Surface", 1f);                 // 1 = Transparent
+        mat.SetFloat("_Blend", 0f);                   // Alpha blend
+        mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetFloat("_ZWrite", 0f);
+        mat.SetFloat("_Cull", 0f);
+        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+        return mat;
     }
 
     private void Bake(SkinnedMeshRenderer[] skins)
@@ -84,7 +103,9 @@ public class DashAfterImage : MonoBehaviour
     private void ApplyColor(float alpha)
     {
         Color c = new Color(color.r, color.g, color.b, alpha);
-        block.SetColor("_Color", c);
+        block.SetColor("_BaseColor", c);      // URP Unlit
+        block.SetColor("_Color", c);          // Sprites/Default
+        block.SetColor("_RendererColor", Color.white);
         for (int i = 0; i < parts.Count; i++)
         {
             parts[i].GetComponent<MeshRenderer>().SetPropertyBlock(block);

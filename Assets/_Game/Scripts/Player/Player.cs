@@ -183,6 +183,7 @@ public class Player : Character
         if (isDashing || isCasting) return;
         if (Time.time - lastDodgeTime < dodgeCooldown) return;
         lastDodgeTime = Time.time;
+        Debug.Log("Dodge (Shift)");
         Dash(0f, 0f);
     }
 
