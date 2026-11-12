@@ -31,6 +31,10 @@ public class BossSkillVFX : MonoBehaviour
             if (boss == null) return;
             bossAnimator = boss.GetComponentInChildren<Animator>();
             lastStateHash = 0;
+            // เตรียมเอฟเฟกต์ไว้ก่อน (สร้าง mesh + โหลด shader) ตอนบอสเพิ่งเกิด = ช่วง cutscene เกมหยุดอยู่
+            // ไม่งั้นบอสใช้สกิลครั้งแรกจะกระตุก — วิธีเดียวกับตอน Boat ได้สกิล (VFXManager.Prewarm)
+            VFXManager.Prewarm(craterBlast, boss.transform.position);
+            VFXManager.Prewarm(spearRing, boss.transform.position);
             return;
         }
         if (!boss.IsAlive || bossAnimator == null) return;
