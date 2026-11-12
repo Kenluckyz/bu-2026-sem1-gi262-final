@@ -38,7 +38,7 @@ public class DashAfterImage : MonoBehaviour
             loggedOnce = true;
             Bounds b = ghost.parts[0].GetComponent<MeshRenderer>().bounds;
             Debug.Log("AfterImage: skins=" + skins.Length + " shader=" + sharedMaterial.shader.name
-                + " ghostPos=" + b.center + " size=" + b.size + " playerPos=" + source.position);
+                + " ghostPos=" + b.center + " size=" + b.size + " verts=" + ghost.parts[0].sharedMesh.vertexCount + " playerPos=" + source.position);
         }
     }
     private static bool loggedOnce;
@@ -95,6 +95,7 @@ public class DashAfterImage : MonoBehaviour
             parts[i].gameObject.SetActive(used);
             if (!used) continue;
             skins[i].BakeMesh(parts[i].sharedMesh, true); // true = ใส่ scale ของโมเดลด้วย
+            parts[i].sharedMesh.RecalculateBounds();      // ไม่คำนวณกรอบใหม่ = กรอบขนาด 0 กล้องตัดทิ้ง มองไม่เห็น
             parts[i].transform.SetPositionAndRotation(skins[i].transform.position, skins[i].transform.rotation);
         }
     }
