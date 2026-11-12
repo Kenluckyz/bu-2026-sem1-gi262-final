@@ -17,8 +17,12 @@ public class DashAfterImage : MonoBehaviour
     // ถ่ายเงา 1 ร่างจากทุก SkinnedMeshRenderer ใต้ source
     public static void Spawn(Transform source, Color tint, float life)
     {
-        SkinnedMeshRenderer[] skins = source.GetComponentsInChildren<SkinnedMeshRenderer>();
-        if (skins.Length == 0) return;
+        SkinnedMeshRenderer[] skins = source.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        if (skins.Length == 0)
+        {
+            Debug.LogWarning("AfterImage: ไม่พบ SkinnedMeshRenderer ใต้ " + source.name);
+            return;
+        }
 
         DashAfterImage ghost = null;
         while (ghost == null && pool.Count > 0) ghost = pool.Dequeue(); // ข้ามตัวที่หายไปตอนโหลดซีนใหม่
@@ -29,7 +33,15 @@ public class DashAfterImage : MonoBehaviour
         ghost.lifeTime = life;
         ghost.timer = 0f;
         ghost.ApplyColor(tint.a);
+        if (!loggedOnce)
+        {
+            loggedOnce = true;
+            Bounds b = ghost.parts[0].GetComponent<MeshRenderer>().bounds;
+            Debug.Log("AfterImage: skins=" + skins.Length + " shader=" + sharedMaterial.shader.name
+                + " ghostPos=" + b.center + " size=" + b.size + " playerPos=" + source.position);
+        }
     }
+    private static bool loggedOnce;
 
     private static DashAfterImage Create()
     {
