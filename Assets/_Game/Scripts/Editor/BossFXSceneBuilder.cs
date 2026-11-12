@@ -42,7 +42,7 @@ public static class BossFXSceneBuilder
         vfx.FindProperty("craterBlast").objectReferenceValue = crater;
         vfx.FindProperty("spearRing").objectReferenceValue = spear;
         vfx.ApplyModifiedPropertiesWithoutUndo();
-        SerializedObject intro = new SerializedObject(obj.AddComponent<BossIntroCutscene>());
+        SerializedObject intro = new SerializedObject(obj.AddComponent<BossCutscene>());
         intro.FindProperty("summonVFX").objectReferenceValue = summon;
         intro.ApplyModifiedPropertiesWithoutUndo();
 
