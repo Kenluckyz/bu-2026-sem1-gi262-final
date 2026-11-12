@@ -42,75 +42,117 @@ public class BossCutscene : MonoBehaviour
         Player player = FindAnyObjectByType<Player>();
         if (cam == null) yield break;
 
-        // 1. หยุดเกม ปิดกล้องตามตัว ซ่อนตัวบอสไว้ก่อน (โผล่ออกมาจากยันต์)
+        // 1. หยุดเกม ปิดกล้องตามตัว ให้บอสหันหาผู้เล่น (กล้องจะไปยืนหน้าบอส ระหว่างบอสกับ Boat)
         float oldScale = Time.timeScale;
         Time.timeScale = 0f;
         if (follow != null) follow.enabled = false;
         if (player != null) player.enabled = false;
         boss.enabled = false; // AI บอสหยุดคิดระหว่าง cutscene (ไม่แก้สคริปต์ แค่ปิดคอมโพเนนต์)
-        // ซ่อนเฉพาะชิ้นที่เปิดอยู่ (ชิ้นที่บอสปิดไว้เอง เช่นแสงตอนโดนตี ห้ามเปิดคืน)
+        if (player != null)
+        {
+            Vector3 toPlayer = player.transform.position - boss.transform.position;
+            toPlayer.y = 0f;
+            if (toPlayer.sqrMagnitude > 0.01f) boss.transform.rotation = Quaternion.LookRotation(toPlayer);
+        }
+
+        // วัดความสูงตัวบอส (ก่อนซ่อน) ไว้คำนวณมุมกล้อง: H = สูงทั้งตัว, head = ระดับหน้า
         List<Renderer> bossRenderers = new List<Renderer>();
+        Bounds body = new Bounds(boss.transform.position, Vector3.one);
+        bool hasBounds = false;
         foreach (Renderer r in boss.GetComponentsInChildren<Renderer>())
         {
-            if (r.enabled) bossRenderers.Add(r);
+            if (!r.enabled) continue; // ชิ้นที่บอสปิดไว้เอง (แสงตอนโดนตี) ห้ามเปิดคืน
+            bossRenderers.Add(r);
+            if (!(r is SkinnedMeshRenderer) && !(r is MeshRenderer)) continue;
+            if (!hasBounds) { body = r.bounds; hasBounds = true; }
+            else body.Encapsulate(r.bounds);
         }
-        SetVisible(bossRenderers, false);
+        float H = Mathf.Max(1.5f, body.size.y);
+        Vector3 feet = boss.transform.position;
+        Vector3 head = new Vector3(feet.x, body.max.y - H * 0.18f, feet.z);
+        Vector3 fwd = boss.transform.forward;
+        Vector3 right = boss.transform.right;
+        SetVisible(bossRenderers, false); // ซ่อนไว้ โผล่ออกมาจากยันต์
 
         GameObject ui = BuildUI(out RectTransform topBar, out RectTransform bottomBar, out Text title, out Text subtitle);
-
-        // 2. แถบดำเข้า + กล้องเลื่อนไปหาบอส (มุมกล้องเดิม แค่ย้ายจุดมอง)
         Vector3 startPos = cam.transform.position;
+        Quaternion startRot = cam.transform.rotation;
         Vector3 offset = player != null ? startPos - player.transform.position : new Vector3(0f, 7f, -5.5f);
-        Vector3 bossPos = boss.transform.position + offset * 0.8f; // ซูมเข้านิดหน่อย
+        float baseFov = cam.fieldOfView;
+
+        // ช็อต A: มุมต่ำกว้าง ๆ หน้าบอสเยื้องขวา เห็นวงยันต์ทั้งวง (กล้องมองเงยขึ้นนิด ๆ ให้บอสดูยักษ์)
+        Vector3 wideTarget = feet + Vector3.up * H * 0.45f;
+        Vector3 widePos = feet + fwd * H * 2.6f + right * H * 0.9f + Vector3.up * H * 0.35f;
+        Quaternion wideRot = Quaternion.LookRotation(wideTarget - widePos);
+        // ช็อต B: โคลสอัปหน้าบอส มุมต่ำ ค่อย ๆ ดันกล้องเข้า (push-in) + โค้งเข้าหาหน้าตรง
+        Vector3 closeFrom = head + fwd * H * 1.25f + right * H * 0.45f - Vector3.up * H * 0.12f;
+        Vector3 closeTo = head + fwd * H * 0.85f + right * H * 0.12f - Vector3.up * H * 0.18f;
+
+        // 2. แถบดำเข้า + กล้องบินจากมุมเกมไปช็อต A
         yield return Animate(moveTime, k =>
         {
             float e = Mathf.SmoothStep(0f, 1f, k);
-            cam.transform.position = Vector3.Lerp(startPos, bossPos, e);
+            cam.transform.SetPositionAndRotation(Vector3.Lerp(startPos, widePos, e), Quaternion.Slerp(startRot, wideRot, e));
             SetBars(topBar, bottomBar, e);
         });
 
-        // 3. ยันต์โลหิตเรียกบอส
+        // 3. ยันต์โลหิตเรียกบอส กล้องค่อย ๆ เลื่อนข้าง (dolly) ให้ภาพมีชีวิต
         // เวลาเกมหยุดอยู่ NFEffect เดินเองไม่ได้ เลยเลื่อนเวลาของเอฟเฟกต์เองด้วยเวลาจริง
         NFEffect fx = null;
         if (summonVFX != null)
         {
-            fx = Instantiate(summonVFX, boss.transform.position, Quaternion.Euler(0f, boss.transform.eulerAngles.y, 0f)).GetComponent<NFEffect>();
+            fx = Instantiate(summonVFX, feet, Quaternion.Euler(0f, boss.transform.eulerAngles.y, 0f)).GetComponent<NFEffect>();
             fx.transform.localScale = Vector3.one * summonScale;
             fx.loop = false;
             fx.playing = false;
             fx.time = 0f;
         }
         float fxTime = fx != null && fx.Duration > 0f ? fx.Duration : 2f;
-        yield return Animate(fxTime * revealPoint, k => { if (fx != null) fx.time = k * fxTime * revealPoint; });
+        float summonTime = fxTime * revealPoint;
+        Vector3 wideEnd = widePos - right * H * 0.5f + fwd * H * 0.2f;
+        yield return Animate(summonTime, k =>
+        {
+            if (fx != null) fx.time = k * summonTime;
+            Vector3 p = Vector3.Lerp(widePos, wideEnd, Mathf.SmoothStep(0f, 1f, k));
+            cam.transform.SetPositionAndRotation(p, Quaternion.LookRotation(wideTarget - p));
+        });
 
-        // 4. บอสโผล่ + จอสั่น + ชื่อขึ้น
+        // 4. บอสโผล่ -> ตัดเป็นโคลสอัปหน้า + จอสั่น + ซูมกระแทก (FOV แคบลงแล้วคืน) + ชื่อขึ้น
         SetVisible(bossRenderers, true);
         float shownTime = 0f;
         while (shownTime < holdAfterReveal)
         {
             shownTime += Time.unscaledDeltaTime;
-            if (fx != null) fx.time = Mathf.Min(fxTime, fxTime * revealPoint + shownTime);
+            float k = Mathf.Clamp01(shownTime / holdAfterReveal);
+            if (fx != null) fx.time = Mathf.Min(fxTime, summonTime + shownTime);
+            Vector3 p = Vector3.Lerp(closeFrom, closeTo, 1f - Mathf.Pow(1f - k, 3f)); // เร็วตอนแรก ช้าตอนท้าย
             float shake = Mathf.Max(0f, 1f - shownTime / 0.6f) * shakeStrength;
-            cam.transform.position = bossPos + (Vector3)(Random.insideUnitCircle * shake);
+            p += (Vector3)(Random.insideUnitCircle * shake);
+            cam.transform.SetPositionAndRotation(p, Quaternion.LookRotation(head - p));
+            if (!cam.orthographic) cam.fieldOfView = baseFov - 10f * Mathf.Max(0f, 1f - shownTime / 0.4f);
             float a = Mathf.Clamp01(shownTime / 0.3f);
             title.color = new Color(1f, 0.85f, 0.4f, a);
             subtitle.color = new Color(1f, 0.6f, 0.55f, a);
             title.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.4f, 1f, a);
             yield return null;
         }
+        if (!cam.orthographic) cam.fieldOfView = baseFov;
 
-        // 5. กล้องกลับมาที่ Boat แถบดำออก
+        // 5. กล้องกลับมาที่ Boat มุมเกมเดิม แถบดำออก
+        Vector3 fromPos = cam.transform.position;
+        Quaternion fromRot = cam.transform.rotation;
         Vector3 backPos = player != null ? player.transform.position + offset : startPos;
-        yield return Animate(moveTime * 0.75f, k =>
+        yield return Animate(moveTime, k =>
         {
             float e = Mathf.SmoothStep(0f, 1f, k);
-            cam.transform.position = Vector3.Lerp(bossPos, backPos, e);
+            cam.transform.SetPositionAndRotation(Vector3.Lerp(fromPos, backPos, e), Quaternion.Slerp(fromRot, startRot, e));
             SetBars(topBar, bottomBar, 1f - e);
             title.color = new Color(1f, 0.85f, 0.4f, 1f - e);
             subtitle.color = new Color(1f, 0.6f, 0.55f, 1f - e);
         });
 
         // 6. คืนทุกอย่าง แล้วเริ่มสู้
+        cam.transform.rotation = startRot;
         Destroy(ui);
         if (fx != null) Destroy(fx.gameObject);
         if (follow != null) follow.enabled = true;
