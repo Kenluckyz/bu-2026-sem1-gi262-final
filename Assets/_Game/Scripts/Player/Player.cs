@@ -59,7 +59,7 @@ public class Player : Character
     private bool isDashing;
 
     [Header("Dodge (Shift)")]
-    [SerializeField] private float dodgeCooldown = 2f;   // กลิ้งหลบด้วย Shift: ไม่มีดาเมจ แค่หลบ (คนละอย่างกับสกิล Dash)
+    [SerializeField] private float dodgeCooldown = 4f;   // กลิ้งหลบด้วย Shift: ไม่มีดาเมจ แค่หลบ (คนละอย่างกับสกิล Dash)
     private float lastDodgeTime = -99f;
     public float DodgeCooldown => dodgeCooldown;
     public float DodgeCooldownRemaining => Mathf.Max(0f, dodgeCooldown - (Time.time - lastDodgeTime));
