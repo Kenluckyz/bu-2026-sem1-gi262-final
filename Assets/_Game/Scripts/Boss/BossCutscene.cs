@@ -1,5 +1,6 @@
 // ส่วนบอส (Keerati)
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -46,7 +47,12 @@ public class BossCutscene : MonoBehaviour
         if (follow != null) follow.enabled = false;
         if (player != null) player.enabled = false;
         boss.enabled = false; // AI บอสหยุดคิดระหว่าง cutscene (ไม่แก้สคริปต์ แค่ปิดคอมโพเนนต์)
-        Renderer[] bossRenderers = boss.GetComponentsInChildren<Renderer>();
+        // ซ่อนเฉพาะชิ้นที่เปิดอยู่ (ชิ้นที่บอสปิดไว้เอง เช่นแสงตอนโดนตี ห้ามเปิดคืน)
+        List<Renderer> bossRenderers = new List<Renderer>();
+        foreach (Renderer r in boss.GetComponentsInChildren<Renderer>())
+        {
+            if (r.enabled) bossRenderers.Add(r);
+        }
         SetVisible(bossRenderers, false);
 
         GameObject ui = BuildUI(out RectTransform topBar, out RectTransform bottomBar, out Text title, out Text subtitle);
@@ -124,9 +130,9 @@ public class BossCutscene : MonoBehaviour
         }
     }
 
-    private static void SetVisible(Renderer[] renderers, bool visible)
+    private static void SetVisible(List<Renderer> renderers, bool visible)
     {
-        for (int i = 0; i < renderers.Length; i++)
+        for (int i = 0; i < renderers.Count; i++)
         {
             if (renderers[i] != null) renderers[i].enabled = visible;
         }
