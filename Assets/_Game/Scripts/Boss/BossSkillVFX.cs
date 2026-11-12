@@ -9,8 +9,8 @@ public class BossSkillVFX : MonoBehaviour
     [Header("เอฟเฟกต์ (ตั้งให้อัตโนมัติจากเมนู)")]
     [SerializeField] private GameObject craterBlast;   // VFX/Boss/CraterBlast/all.prefab
     [SerializeField] private GameObject spearRing;     // VFX/Boss/SpearRing/all.prefab
-    [SerializeField] private float craterSize = 3.5f;  // ขนาด (เมตร) ปรับให้พอดีวงดาเมจ
-    [SerializeField] private float spearRingSize = 6f;
+    [SerializeField] private float craterSize = 7f;    // ขนาด (เมตร) ปรับให้พอดีวงดาเมจ
+    [SerializeField] private float spearRingSize = 11f;
     [SerializeField] private float groundLift = 0.6f;  // ยกขึ้นจากพื้นนิดหน่อย ไม่จมพื้น
 
     private OrcBoss boss;
