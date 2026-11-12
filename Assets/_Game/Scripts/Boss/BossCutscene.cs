@@ -9,6 +9,8 @@ using NightForge;
 // -> ชื่อบอสขึ้นกลางจอ -> กล้องกลับมาที่ Boat แล้วเริ่มสู้
 // หยุดเวลาเกม (timeScale 0) ระหว่าง cutscene บอส/ลูกน้อง/ผู้เล่นจะได้ไม่ขยับ — ทุกอย่างในนี้ใช้เวลาจริง (unscaled)
 // ไม่แก้ OrcBoss / DungeonManager / CameraFollow ของเพื่อน แค่ปิดชั่วคราวแล้วเปิดคืน
+// ทำงานก่อนสคริปต์อื่นในเฟรมเดียวกัน (ลำดับ -100) จะได้จับบอสได้ก่อนที่ Update ของบอสจะเริ่มใช้สกิลแรก
+[DefaultExecutionOrder(-100)]
 public class BossCutscene : MonoBehaviour
 {
     [SerializeField] private GameObject summonVFX;          // VFX/BossTalismans/BossTalismans.prefab (3D)
@@ -28,14 +30,11 @@ public class BossCutscene : MonoBehaviour
     [SerializeField] private float cutsceneFov = 28f;   // เลนส์แคบตลอด cutscene = ภาพแน่น ไม่เห็นแมพ
 
     private bool played;
-    private float searchTimer;
 
     private void Update()
     {
         if (played) return;
-        searchTimer -= Time.unscaledDeltaTime;
-        if (searchTimer > 0f) return;
-        searchTimer = 0.2f;
+        // หาทุกเฟรมจนกว่าจะเจอ (เดิมหาทุก 0.2 วิ บอสเลยกระโดดใส่ไปก่อน cutscene)
         OrcBoss boss = FindAnyObjectByType<OrcBoss>();
         if (boss == null || !boss.IsAlive) return;
         played = true; // เล่นครั้งเดียวต่อด่าน
@@ -95,6 +94,13 @@ public class BossCutscene : MonoBehaviour
         {
             if (c.isRootCanvas && c.enabled && c.gameObject != ui) { c.enabled = false; hiddenCanvases.Add(c); }
         }
+        // กันไว้อีกชั้น: ถ้ามีพื้นแดงเตือนท่าค้างอยู่ ซ่อนไว้ระหว่าง cutscene
+        List<Renderer> indicatorRenderers = new List<Renderer>();
+        foreach (AttackIndicator ind in FindObjectsByType<AttackIndicator>(FindObjectsSortMode.None))
+        {
+            foreach (Renderer r in ind.GetComponentsInChildren<Renderer>()) if (r.enabled) indicatorRenderers.Add(r);
+        }
+        SetVisible(indicatorRenderers, false);
         List<Renderer> playerRenderers = new List<Renderer>();
         if (player != null)
         {
@@ -205,6 +211,7 @@ public class BossCutscene : MonoBehaviour
         if (!cam.orthographic) cam.fieldOfView = baseFov;
         foreach (Canvas c in hiddenCanvases) if (c != null) c.enabled = true;
         SetVisible(playerRenderers, true);
+        SetVisible(indicatorRenderers, true);
         Destroy(ui);
         if (fx != null) Destroy(fx.gameObject);
         if (follow != null) follow.enabled = true;
