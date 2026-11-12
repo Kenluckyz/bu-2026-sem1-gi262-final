@@ -36244,6 +36244,82 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 516435331}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &518996944
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 518996947}
+  - component: {fileID: 518996946}
+  - component: {fileID: 518996945}
+  m_Layer: 0
+  m_Name: BossFX
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &518996945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 518996944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf6cd4fe2a545a24c89b3cb5e6daea17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossCutscene
+  summonVFX: {fileID: 2359652042788438858, guid: df46c20144212ed4092fa6e120c14b4d, type: 3}
+  summonScale: 1.6
+  summonLift: 0.25
+  bossTitle: ORC WARLORD
+  bossSubtitle: "\u0E40\u0E08\u0E49\u0E32\u0E41\u0E2B\u0E48\u0E07\u0E1A\u0E31\u0E25\u0E25\u0E31\u0E07\u0E01\u0E4C\u0E42\u0E25\u0E2B\u0E34\u0E15"
+  moveTime: 0.8
+  revealPoint: 0.55
+  faceTime: 1.1
+  holdAfterReveal: 2.2
+  shakeStrength: 0.25
+  closeStart: 0.4
+  closeEnd: 0.22
+  closeZoomFov: 8
+  cutsceneFov: 28
+--- !u!114 &518996946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 518996944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b792c7e1da3de2046abe87f49c21ade8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossSkillVFX
+  craterBlast: {fileID: 4109127433856180666, guid: 61ed51be7e1fec447b6a09565df3e86a, type: 3}
+  spearRing: {fileID: 457721833771519300, guid: e53d26ae942e5d7449998ce6a823a486, type: 3}
+  craterScale: 1.8
+  spearRingScale: 2.2
+  groundLift: 0.2
+--- !u!4 &518996947
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 518996944}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &519622171
 GameObject:
   m_ObjectHideFlags: 0
@@ -82159,6 +82235,7 @@ MonoBehaviour:
   maskSprite: {fileID: 21300000, guid: 2319c83e318a08941b8e30724632a812, type: 3}
   position: {x: 250, y: 54}
   size: 96
+  showSlotOnScreen: 0
 --- !u!4 &1143950920
 Transform:
   m_ObjectHideFlags: 0
@@ -157660,3 +157737,4 @@ SceneRoots:
   - {fileID: 2071268105}
   - {fileID: 323592807}
   - {fileID: 1143950920}
+  - {fileID: 518996947}
