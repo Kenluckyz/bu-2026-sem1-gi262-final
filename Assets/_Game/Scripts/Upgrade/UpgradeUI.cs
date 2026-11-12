@@ -75,8 +75,16 @@ public class UpgradeUI : MonoBehaviour
         if (player != null) player.Stats.OnLevelUp -= HandleLevelUp;
     }
 
+    // ฆ่าบอสแล้ว (Victory) หรือตาย (GameOver) = เกมจบ ไม่ต้องเลือกอัปเกรดแล้ว ไม่งั้นทับหน้า Victory
+    private bool IsGameOver()
+    {
+        GameManager gm = GameManager.Instance;
+        return gm != null && (gm.State == GameState.Victory || gm.State == GameState.GameOver);
+    }
+
     private void HandleLevelUp(int level)
     {
+        if (IsGameOver()) return;
         pendingLevelUps.Enqueue(level);
         if (!isOpen) ShowNext();
     }
@@ -90,6 +98,12 @@ public class UpgradeUI : MonoBehaviour
             if (player != null && player.IsAlive) player.enabled = true;
         }
         if (!isOpen) return;
+        if (IsGameOver())
+        {
+            pendingLevelUps.Clear();
+            Close();
+            return;
+        }
 
         Time.timeScale = 0f; // กันปุ่ม Pause ปลดหยุดเกมระหว่างเลือก
 
