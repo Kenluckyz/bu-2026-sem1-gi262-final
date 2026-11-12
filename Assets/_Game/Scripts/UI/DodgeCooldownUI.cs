@@ -11,6 +11,8 @@ public class DodgeCooldownUI : MonoBehaviour
     [SerializeField] private Sprite maskSprite;     // circle_white
     [SerializeField] private Vector2 position = new Vector2(250f, 54f); // จากกลางล่างจอ (ถัดจากช่อง 3)
     [SerializeField] private float size = 96f;
+    [SerializeField] private bool showSlotOnScreen = false; // ติ๊กถ้าอยากให้วงคูลดาวน์ Shift กลับมา
+    private bool showSlot => showSlotOnScreen;
 
     private Image mask;
     private Text cooldownText;
@@ -26,7 +28,7 @@ public class DodgeCooldownUI : MonoBehaviour
             Debug.LogWarning("DodgeCooldownUI: ไม่พบ Player หรือ Canvas HUD");
             return;
         }
-        Build(hud.transform);
+        if (showSlot) Build(hud.transform); // ปิดไว้: ผู้ใช้ไม่อยากให้มีวง Shift บนจอ เหลือแค่ป้ายมุมซ้ายล่าง
     }
 
     private void Update()
