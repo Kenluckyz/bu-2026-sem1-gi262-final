@@ -55,9 +55,10 @@ public static class SceneBuilder
         // ฟันเพลิงเป็นแผ่นตั้ง: วางนอน (x 90) แล้วหันด้านโค้งไปข้างหน้า (y 90) เป็นเสี้ยวกวาดหน้าตัว ขนาดพอ ๆ กรวยดาเมจ
         // วางนอนคว่ำ (x -90) + หมุน 180 (y 90) = สะท้อนหน้า-หลัง ให้ส่วนนูนของเสี้ยวชี้ไปหน้าศัตรู ปลายโค้งกลับมาหาตัว
         // จุดหมุนของเอฟเฟกต์ไม่อยู่กลางเสี้ยว เลยเลื่อนขวา+หน้า ให้ตัวละครอยู่กลางวงโค้งพอดี
-        SetVFX(overPunch, "FireSlash", 1.6f, 0.5f, 0.9f, 1f, new Vector3(-90f, 90f, 0f));
-        overPunch.vfxSide = 1.1f;
-        overPunch.vfxBone = HumanBodyBones.LastBone; // ยึดกลางตัว (ถ้ายึดมือ ตำแหน่งจะแกว่งตามท่า)
+        SetVFX(overPunch, "FireSlash", 1.6f, 0.5f, 0.4f, 1f, new Vector3(0f, 90f, 0f)); // x = 0 วางแนวนอนขนานพื้น
+        overPunch.vfxSide = 0f;
+        overPunch.vfxBone = HumanBodyBones.RightHand; // ออกจากมือขวาตอนหมัดสุด (จังหวะ hitPoint)
+        overPunch.hitWidth = 2.4f;
         finalExec.vfxBone = HumanBodyBones.LastBone;   // วงไฟอยู่ใต้ตัว ไม่ต้องตามเท้า
         SetVFX(finalExec, "FireRing", 2.5f, 1f, 0f, 0f, new Vector3(0f, -90f, 0f));
         for (int i = 0; i < start.Length; i++)

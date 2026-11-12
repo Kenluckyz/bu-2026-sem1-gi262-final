@@ -28,21 +28,26 @@ public class DashStrikeSkill : ActiveSkill
     }
 }
 
-// Active: ปล่อยหมัดแรง โดนศัตรูที่อยู่ในกรวยข้างหน้า
+// Active: ปล่อยหมัดไฟแนวนอน โดนศัตรูทุกตัวในแถบสี่เหลี่ยมข้างหน้า ตั้งแต่ชิดตัวจนสุดระยะ radius
 public class OverPunchSkill : ActiveSkill
 {
     public OverPunchSkill(SkillData data) : base(data) { }
 
     protected override void Activate(Player player)
     {
-        List<Character> targets = player.FindTargetsInRadius(data.radius);
+        Transform t = player.transform;
+        // หาวงกว้างพอครอบมุมแถบก่อน แล้วค่อยคัดด้วยระยะหน้า/ข้าง
+        float searchRadius = Mathf.Sqrt(data.radius * data.radius + data.hitWidth * data.hitWidth);
+        List<Character> targets = player.FindTargetsInRadius(searchRadius);
         int hitCount = 0;
         for (int i = 0; i < targets.Count; i++)
         {
-            // มุมระหว่างทิศที่หัน กับทิศไปหาศัตรู ไม่เกินครึ่งกรวย = อยู่ในกรวย
-            Vector3 toTarget = targets[i].transform.position - player.transform.position;
+            Vector3 toTarget = targets[i].transform.position - t.position;
             toTarget.y = 0f;
-            if (Vector3.Angle(player.transform.forward, toTarget) <= data.coneAngle / 2f)
+            float forward = Vector3.Dot(toTarget, t.forward); // ไกลไปข้างหน้าเท่าไร
+            float side = Vector3.Dot(toTarget, t.right);      // เยื้องซ้ายขวาเท่าไร
+            // -0.5 = ศัตรูที่ชิดตัวมาก (ทับตัวนิด ๆ) ก็โดน
+            if (forward >= -0.5f && forward <= data.radius && Mathf.Abs(side) <= data.hitWidth / 2f)
             {
                 player.DealDamage(targets[i], Value());
                 hitCount++;

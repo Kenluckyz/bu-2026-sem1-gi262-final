@@ -24,16 +24,18 @@ MonoBehaviour:
   radius: 3
   targetCount: 0
   coneAngle: 90
+  hitWidth: 2.4
   animState: OverPunch
   hitPoint: 0.4
   recoverPoint: 0.75
   vfxPrefab: {fileID: 48335438801068846, guid: feb02c019b4cd724c886fe23a356a37c, type: 3}
   vfxScale: 1.6
   vfxTime: 0.5
-  vfxForward: 0.9
-  vfxSide: 1.1
+  vfxForward: 0.4
+  vfxSide: 0
   vfxHeight: 1
-  vfxRotation: {x: -90, y: 90, z: 0}
+  vfxRotation: {x: 0, y: 90, z: 0}
+  vfxBone: 18
   vfxFollow: 0
   statType: 1
   isStartAvailable: 1

@@ -24,7 +24,8 @@ public class SkillData : ScriptableObject
     public float cooldown = 3f;
     public float radius = 3f;
     public int targetCount = 3;
-    public float coneAngle = 90f;      // ความกว้างกรวย (องศา) ใช้กับ OverPunch
+    public float coneAngle = 90f;      // ความกว้างกรวย (องศา) — เดิมใช้กับ OverPunch
+    public float hitWidth = 2.4f;      // ความกว้างแถบดาเมจหน้าตัว (เมตร) ใช้กับ OverPunch: โดนตั้งแต่ชิดตัวถึงระยะ radius
     public string animState;           // ชื่อท่าใน Animator (เว้นว่าง = ท่าสกิลทั่วไป)
     [Range(0f, 1f)] public float hitPoint = 0f;   // ดาเมจ+เอฟเฟกต์ออกตอนท่าเล่นไปกี่ส่วน (0.4 = 40% ของท่า) แบบ hitPoint ของคอมโบ
     [Range(0f, 1f)] public float recoverPoint = 0.8f; // ยืนนิ่งจนท่าเล่นถึงตรงนี้ แล้วค่อยขยับได้
