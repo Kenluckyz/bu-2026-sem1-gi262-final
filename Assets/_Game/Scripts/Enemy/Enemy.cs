@@ -28,6 +28,10 @@ public class Enemy : Character
     [Tooltip("แรงดันออกจากศัตรูตัวอื่นที่ยืนชิดกัน (กันซ้อนกัน)")]
     public float separationWeight = 1.5f;
 
+    [Header("Dungeon")]
+    [Tooltip("ไล่ผู้เล่นตลอด ไม่สน detectRange (ศัตรูในดันเจี้ยนที่ Room สั่งเกิด จะเปิดอันนี้)")]
+    public bool huntPlayer;
+
     protected Player target;
     protected EnemyManager manager;    // EnemyManager ที่สร้างตัวนี้ (สไลม์ใช้เกิดลูก)
     protected CharacterController controller;
@@ -129,7 +133,7 @@ public class Enemy : Character
                 Attack();
             }
         }
-        else if (distance <= data.detectRange)
+        else if (distance <= data.detectRange || huntPlayer)
         {
             ChasePlayer();
         }

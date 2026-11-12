@@ -15,13 +15,13 @@ MonoBehaviour:
   enemyName: Goblin
   prefab: {fileID: 8078014225274864866, guid: 08453d56463916d44bc79c8d919cfcdd, type: 3}
   maxHP: 40
-  damage: 8
+  damage: 7
   expDrop: 10
   modelScale: 1.3
   moveSpeed: 4.2
   detectRange: 14
   attackRange: 1.3
-  attackCooldown: 0.6
+  attackCooldown: 1
   hitPoint: 0.45
   attackAnimSpeed: 1.3
   attackAnims:
