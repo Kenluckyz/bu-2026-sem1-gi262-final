@@ -19,6 +19,10 @@ public class BossCutscene : MonoBehaviour
     [SerializeField] private float revealPoint = 0.55f;     // บอสโผล่ตอนยันต์เล่นไปกี่ส่วน
     [SerializeField] private float holdAfterReveal = 1.6f;  // ค้างให้ดูบอสกับชื่อกี่วิ
     [SerializeField] private float shakeStrength = 0.25f;
+    [Header("โคลสอัปหน้าบอส (เท่าของความสูงบอส ยิ่งน้อยยิ่งใกล้)")]
+    [SerializeField] private float closeStart = 0.75f;  // ระยะกล้องตอนบอสเพิ่งโผล่
+    [SerializeField] private float closeEnd = 0.4f;     // ระยะกล้องตอนจบ (ดันเข้ามาถึงตรงนี้)
+    [SerializeField] private float closeZoomFov = 12f;  // ลด FOV ตอนโคลสอัป (ซูมเลนส์เข้าอีก)
 
     private bool played;
     private float searchTimer;
@@ -85,8 +89,8 @@ public class BossCutscene : MonoBehaviour
         Vector3 widePos = feet + fwd * H * 2.6f + right * H * 0.9f + Vector3.up * H * 0.35f;
         Quaternion wideRot = Quaternion.LookRotation(wideTarget - widePos);
         // ช็อต B: โคลสอัปหน้าบอส มุมต่ำ ค่อย ๆ ดันกล้องเข้า (push-in) + โค้งเข้าหาหน้าตรง
-        Vector3 closeFrom = head + fwd * H * 1.25f + right * H * 0.45f - Vector3.up * H * 0.12f;
-        Vector3 closeTo = head + fwd * H * 0.85f + right * H * 0.12f - Vector3.up * H * 0.18f;
+        Vector3 closeFrom = head + fwd * H * closeStart + right * H * 0.3f - Vector3.up * H * 0.1f;
+        Vector3 closeTo = head + fwd * H * closeEnd + right * H * 0.08f - Vector3.up * H * 0.12f;
 
         // 2. แถบดำเข้า + กล้องบินจากมุมเกมไปช็อต A
         yield return Animate(moveTime, k =>
@@ -129,7 +133,7 @@ public class BossCutscene : MonoBehaviour
             float shake = Mathf.Max(0f, 1f - shownTime / 0.6f) * shakeStrength;
             p += (Vector3)(Random.insideUnitCircle * shake);
             cam.transform.SetPositionAndRotation(p, Quaternion.LookRotation(head - p));
-            if (!cam.orthographic) cam.fieldOfView = baseFov - 10f * Mathf.Max(0f, 1f - shownTime / 0.4f);
+            if (!cam.orthographic) cam.fieldOfView = baseFov - closeZoomFov - 10f * Mathf.Max(0f, 1f - shownTime / 0.4f); // แคบลง = ซูมเข้าหน้า
             float a = Mathf.Clamp01(shownTime / 0.3f);
             title.color = new Color(1f, 0.85f, 0.4f, a);
             subtitle.color = new Color(1f, 0.6f, 0.55f, a);
