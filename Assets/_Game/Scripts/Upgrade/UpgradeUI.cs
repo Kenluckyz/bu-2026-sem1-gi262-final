@@ -48,6 +48,7 @@ public class UpgradeUI : MonoBehaviour
         public Text iconLabel;
         public Text nameText;
         public Text levelText;
+        public Text statText;
         public Text descText;
     }
 
@@ -60,7 +61,9 @@ public class UpgradeUI : MonoBehaviour
             Debug.LogWarning("UpgradeUI: ไม่พบ Player หรือ UpgradeManager");
             return;
         }
-        font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        // ฟอนต์ไทยของ Windows (Leelawadee UI) อ่านง่ายกว่า Arial ที่ต่อภาษาไทยแบบเบียด ๆ
+        font = Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Leelawadee", "Tahoma" }, 32);
+        if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         EnsureEventSystem();
         BuildUI();
         panel.SetActive(false);
@@ -150,12 +153,14 @@ public class UpgradeUI : MonoBehaviour
             int level = player.GetSkillLevel(upgrade.skill.skillName);
             card.levelText.text = level == 0 ? "NEW!" : Stars(level, upgrade.skill.maxLevel);
             card.descText.text = !string.IsNullOrEmpty(upgrade.description) ? upgrade.description : upgrade.skill.description;
+            card.statText.text = SkillStatLine(upgrade.skill, level);
         }
         else
         {
             string amount = upgrade.isPercent ? "+" + Mathf.RoundToInt(upgrade.value * 100f) + "%" : "+" + upgrade.value;
             card.levelText.text = amount;
             card.descText.text = upgrade.description;
+            card.statText.text = "";
         }
     }
 
@@ -168,6 +173,18 @@ public class UpgradeUI : MonoBehaviour
             text += i < level ? "★" : (i == level ? "<color=#FFFFFF>☆</color>" : "<color=#00000055>☆</color>");
         }
         return text;
+    }
+
+    // บอกว่าเลือกแล้วแรงขึ้นเท่าไร: ค่าตามเลเวลแบบ Skill.Value() = baseValue + valuePerLevel * (level - 1)
+    private string SkillStatLine(SkillData skill, int level)
+    {
+        string label = skill.kind == SkillKind.Passive ? "โบนัส" : "ดาเมจ";
+        string unit = skill.kind == SkillKind.Passive ? "%" : "";
+        if (level == 0) return label + " " + skill.baseValue + unit;
+        float now = skill.baseValue + skill.valuePerLevel * (level - 1);
+        float next = now + skill.valuePerLevel;
+        int percent = now > 0f ? Mathf.RoundToInt(skill.valuePerLevel / now * 100f) : 0;
+        return label + " " + now + unit + " → " + next + unit + System.Environment.NewLine + "<color=#7CFF6B>+" + percent + "%</color>";
     }
 
     private string StatLabel(UpgradeData upgrade)
@@ -269,12 +286,21 @@ public class UpgradeUI : MonoBehaviour
         key.text = (index + 1).ToString();
         key.gameObject.AddComponent<Outline>().effectColor = WoodDark;
 
-        card.nameText = MakeText(root.transform, "Name", 40, Color.white, new Vector2(0f, 135f), new Vector2(300f, 56f));
+        card.nameText = MakeText(root.transform, "Name", 40, Color.white, new Vector2(0f, 135f), new Vector2(270f, 56f));
+        card.nameText.resizeTextForBestFit = true; // ชื่อยาว (FinalExecution) ย่อเองไม่ล้นธง
+        card.nameText.resizeTextMinSize = 22;
+        card.nameText.resizeTextMaxSize = 40;
+        card.nameText.horizontalOverflow = HorizontalWrapMode.Overflow;
         AddShadow(card.nameText);
-        card.descText = MakeText(root.transform, "Desc", 24, Color.white, new Vector2(0f, 0f), new Vector2(270f, 180f));
+        card.descText = MakeText(root.transform, "Desc", 23, Color.white, new Vector2(0f, 20f), new Vector2(260f, 150f));
+        card.descText.fontStyle = FontStyle.Normal;
+        card.descText.lineSpacing = 1.15f;
+        card.statText = MakeText(root.transform, "Stat", 26, Color.white, new Vector2(0f, -80f), new Vector2(280f, 80f));
+        card.statText.supportRichText = true;
+        AddShadow(card.statText);
         card.descText.alignment = TextAnchor.UpperCenter;
         AddShadow(card.descText);
-        card.levelText = MakeText(root.transform, "Level", 30, Gold, new Vector2(0f, -170f), new Vector2(300f, 90f));
+        card.levelText = MakeText(root.transform, "Level", 30, Gold, new Vector2(0f, -185f), new Vector2(300f, 80f));
         card.levelText.supportRichText = true;
         AddShadow(card.levelText);
 

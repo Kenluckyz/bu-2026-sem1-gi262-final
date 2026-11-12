@@ -61,6 +61,9 @@ public class Player : Character
     [Header("Dodge (Shift)")]
     [SerializeField] private float dodgeCooldown = 0.8f; // กลิ้งหลบด้วย Shift: ไม่มีดาเมจ แค่หลบ (คนละอย่างกับสกิล Dash)
     private float lastDodgeTime = -99f;
+    [SerializeField] private Color afterImageColor = new Color(0.45f, 0.8f, 1f, 0.55f); // สีเงาร่างตอนหลบ
+    [SerializeField] private float afterImageInterval = 0.05f; // ทิ้งเงาทุกกี่วินาที
+    [SerializeField] private float afterImageLife = 0.35f;     // เงาจางหมดในกี่วินาที
     private bool isCasting; // กำลังเล่นท่าสกิล 2/3
 
     [Header("Hurt")]
@@ -202,13 +205,25 @@ public class Player : Character
         }
 
         float timer = 0f;
+        float afterImageTimer = 0f;
         while (timer < dashTime)
         {
             controller.Move(direction * dashSpeed * Time.deltaTime);
             timer += Time.deltaTime;
 
-            // ศัตรูที่พุ่งผ่าน โดนดาเมจ (หลบด้วย Shift ดาเมจ 0 ข้ามไป)
-            if (damage <= 0f) { yield return null; continue; }
+            // หลบด้วย Shift (ดาเมจ 0): ทิ้งเงาร่างไว้ข้างหลัง ไม่ทำดาเมจ
+            if (damage <= 0f)
+            {
+                afterImageTimer -= Time.deltaTime;
+                if (afterImageTimer <= 0f)
+                {
+                    afterImageTimer = afterImageInterval;
+                    DashAfterImage.Spawn(animator != null ? animator.transform : transform, afterImageColor, afterImageLife);
+                }
+                yield return null;
+                continue;
+            }
+            // ศัตรูที่พุ่งผ่าน โดนดาเมจ
             List<Character> targets = FindTargetsInRadius(hitRadius);
             for (int i = 0; i < targets.Count; i++)
             {

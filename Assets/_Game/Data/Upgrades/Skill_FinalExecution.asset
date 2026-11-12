@@ -17,6 +17,7 @@ MonoBehaviour:
     \u0E1B\u0E34\u0E14\u0E40\u0E01\u0E21\u0E28\u0E31\u0E15\u0E23\u0E39\u0E17\u0E35\u0E48\u0E2D\u0E22\u0E39\u0E48\u0E43\u0E01\u0E25\u0E49"
   icon: {fileID: 0}
   type: 1
+  cardColor: {r: 0.85, g: 0.12, b: 0.15, a: 1}
   statType: 0
   value: 10
   isPercent: 0

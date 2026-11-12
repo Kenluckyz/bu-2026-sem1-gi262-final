@@ -1,0 +1,93 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+// เงาร่างตัวเอง (afterimage) ตอนกด Shift หลบ: ถ่ายท่าปัจจุบันของโมเดลเป็น mesh นิ่ง ๆ แล้วค่อย ๆ จางหาย
+// ใช้ Queue เก็บเงาที่จางหมดแล้วไว้ใช้ซ้ำ (Object Pool แบบ VFXManager) ไม่ต้องสร้าง/ลบทุกครั้ง
+public class DashAfterImage : MonoBehaviour
+{
+    private static Queue<DashAfterImage> pool = new Queue<DashAfterImage>();
+    private static Material sharedMaterial;
+
+    private List<MeshFilter> parts = new List<MeshFilter>();
+    private MaterialPropertyBlock block;
+    private Color color;
+    private float lifeTime;
+    private float timer;
+
+    // ถ่ายเงา 1 ร่างจากทุก SkinnedMeshRenderer ใต้ source
+    public static void Spawn(Transform source, Color tint, float life)
+    {
+        SkinnedMeshRenderer[] skins = source.GetComponentsInChildren<SkinnedMeshRenderer>();
+        if (skins.Length == 0) return;
+
+        DashAfterImage ghost = null;
+        while (ghost == null && pool.Count > 0) ghost = pool.Dequeue(); // ข้ามตัวที่หายไปตอนโหลดซีนใหม่
+        if (ghost == null) ghost = Create();
+        ghost.gameObject.SetActive(true);
+        ghost.Bake(skins);
+        ghost.color = tint;
+        ghost.lifeTime = life;
+        ghost.timer = 0f;
+        ghost.ApplyColor(tint.a);
+    }
+
+    private static DashAfterImage Create()
+    {
+        if (sharedMaterial == null)
+        {
+            // Sprites/Default โปร่งใสได้และไม่ต้องมีแสง ใช้กับ mesh ได้
+            sharedMaterial = new Material(Shader.Find("Sprites/Default"));
+        }
+        GameObject obj = new GameObject("DashAfterImage");
+        DashAfterImage ghost = obj.AddComponent<DashAfterImage>();
+        ghost.block = new MaterialPropertyBlock();
+        return ghost;
+    }
+
+    private void Bake(SkinnedMeshRenderer[] skins)
+    {
+        // เพิ่มชิ้นให้พอกับจำนวนชิ้นของโมเดล
+        while (parts.Count < skins.Length)
+        {
+            GameObject part = new GameObject("Part", typeof(MeshFilter), typeof(MeshRenderer));
+            part.transform.SetParent(transform, false);
+            MeshFilter filter = part.GetComponent<MeshFilter>();
+            filter.sharedMesh = new Mesh();
+            MeshRenderer renderer = part.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = sharedMaterial;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            parts.Add(filter);
+        }
+        for (int i = 0; i < parts.Count; i++)
+        {
+            bool used = i < skins.Length;
+            parts[i].gameObject.SetActive(used);
+            if (!used) continue;
+            skins[i].BakeMesh(parts[i].sharedMesh, true); // true = ใส่ scale ของโมเดลด้วย
+            parts[i].transform.SetPositionAndRotation(skins[i].transform.position, skins[i].transform.rotation);
+        }
+    }
+
+    private void Update()
+    {
+        timer += Time.deltaTime;
+        float t = timer / lifeTime;
+        if (t >= 1f)
+        {
+            gameObject.SetActive(false);
+            pool.Enqueue(this); // จางหมดแล้ว เก็บไว้ใช้รอบหน้า
+            return;
+        }
+        ApplyColor(color.a * (1f - t));
+    }
+
+    private void ApplyColor(float alpha)
+    {
+        Color c = new Color(color.r, color.g, color.b, alpha);
+        block.SetColor("_Color", c);
+        for (int i = 0; i < parts.Count; i++)
+        {
+            parts[i].GetComponent<MeshRenderer>().SetPropertyBlock(block);
+        }
+    }
+}

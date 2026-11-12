@@ -22125,6 +22125,75 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 322573919}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &323592804
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 323592807}
+  - component: {fileID: 323592806}
+  - component: {fileID: 323592805}
+  m_Layer: 0
+  m_Name: UpgradeSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &323592805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 323592804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69e41a052300e974c92db4ebce82a655, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeUI
+  player: {fileID: 1386909204}
+  upgradeManager: {fileID: 323592806}
+  optionCount: 3
+  iconBackground: {fileID: 21300000, guid: 9873141178a71c74b95521d30db97e97, type: 3}
+  iconRing: {fileID: 21300000, guid: a9081e957c444a8489c5ca5ed47dc9a1, type: 3}
+  bannerCloth: {fileID: 21300000, guid: 59972933a97105f4f922f37d62a40579, type: 3}
+  bannerTrim: {fileID: 21300000, guid: 14b05691e95cc4941aaa82c50a962d08, type: 3}
+  bannerGlow: {fileID: 21300000, guid: ad31afad20d61184abead8b91361a488, type: 3}
+--- !u!114 &323592806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 323592804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3029548107a064d9198ca778f2dbc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeManager
+  allUpgrades:
+  - {fileID: 11400000, guid: daddaff62c2fcb0469c59430c5486c99, type: 2}
+  - {fileID: 11400000, guid: b9389d54fe11b0c449aa95191a15a0d9, type: 2}
+  - {fileID: 11400000, guid: 3ea65669c76bdbb418cbb240b06743cc, type: 2}
+--- !u!4 &323592807
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 323592804}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &326699819
 GameObject:
   m_ObjectHideFlags: 0
@@ -157539,3 +157608,4 @@ SceneRoots:
   - {fileID: 1889602542}
   - {fileID: 1814507221}
   - {fileID: 2071268105}
+  - {fileID: 323592807}
