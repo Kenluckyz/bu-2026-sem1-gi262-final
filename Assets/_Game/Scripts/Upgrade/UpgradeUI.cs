@@ -236,7 +236,7 @@ public class UpgradeUI : MonoBehaviour
         panel = new GameObject("UpgradePanel", typeof(RectTransform), typeof(Image));
         panel.transform.SetParent(canvasObj.transform, false);
         Stretch(panel.GetComponent<RectTransform>());
-        panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
+        panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.85f); // พื้นหลังมืด ให้การ์ดเด่น
 
         titleText = MakeText(panel.transform, "Title", 64, Gold, new Vector2(0f, 420f), new Vector2(1200f, 100f));
         titleText.gameObject.AddComponent<Outline>().effectColor = WoodDark;
