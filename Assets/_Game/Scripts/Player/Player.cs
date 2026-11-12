@@ -59,10 +59,10 @@ public class Player : Character
     private bool isDashing;
 
     [Header("Dodge (Shift)")]
-    [SerializeField] private float dodgeCooldown = 4f;   // กลิ้งหลบด้วย Shift: ไม่มีดาเมจ แค่หลบ (คนละอย่างกับสกิล Dash)
+    [SerializeField] private float dodgeCooldownTime = 4f;   // กลิ้งหลบด้วย Shift: ไม่มีดาเมจ แค่หลบ (คนละอย่างกับสกิล Dash)
     private float lastDodgeTime = -99f;
-    public float DodgeCooldown => dodgeCooldown;
-    public float DodgeCooldownRemaining => Mathf.Max(0f, dodgeCooldown - (Time.time - lastDodgeTime));
+    public float DodgeCooldown => dodgeCooldownTime;
+    public float DodgeCooldownRemaining => Mathf.Max(0f, dodgeCooldownTime - (Time.time - lastDodgeTime));
     [SerializeField] private Color afterImageColor = new Color(0.45f, 0.8f, 1f, 0.3f); // สีเงาร่างตอนหลบ
     [SerializeField] private float afterImageInterval = 0.08f; // ทิ้งเงาทุกกี่วินาที
     [SerializeField] private float afterImageLife = 0.25f;     // เงาจางหมดในกี่วินาที
@@ -183,9 +183,9 @@ public class Player : Character
     public void Dodge()
     {
         if (isDashing || isCasting) return;
-        if (Time.time - lastDodgeTime < dodgeCooldown) return;
+        if (Time.time - lastDodgeTime < dodgeCooldownTime) return;
         lastDodgeTime = Time.time;
-        Debug.Log("Dodge (Shift) คูลดาวน์ " + dodgeCooldown + " วิ");
+        Debug.Log("Dodge (Shift) คูลดาวน์ " + dodgeCooldownTime + " วิ");
         Dash(0f, 0f);
     }
 
