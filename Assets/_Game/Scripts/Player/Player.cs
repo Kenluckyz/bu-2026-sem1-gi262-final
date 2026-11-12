@@ -185,7 +185,6 @@ public class Player : Character
         if (isDashing || isCasting) return;
         if (Time.time - lastDodgeTime < dodgeCooldownTime) return;
         lastDodgeTime = Time.time;
-        Debug.Log("Dodge (Shift) คูลดาวน์ " + dodgeCooldownTime + " วิ");
         Dash(0f, 0f);
     }
 

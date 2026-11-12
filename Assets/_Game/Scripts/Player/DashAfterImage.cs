@@ -33,15 +33,8 @@ public class DashAfterImage : MonoBehaviour
         ghost.lifeTime = life;
         ghost.timer = 0f;
         ghost.ApplyColor(tint.a);
-        if (!loggedOnce || ghost.parts[0].GetComponent<MeshRenderer>().bounds.size.y < 0.5f)
-        {
-            loggedOnce = true;
-            Bounds b = ghost.parts[0].GetComponent<MeshRenderer>().bounds;
-            Debug.Log("AfterImage: skins=" + skins.Length + " shader=" + sharedMaterial.shader.name
-                + " ghostPos=" + b.center + " size=" + b.size + " verts=" + ghost.parts[0].sharedMesh.vertexCount + " playerPos=" + source.position);
-        }
     }
-    private static bool loggedOnce;
+
 
     private static DashAfterImage Create()
     {

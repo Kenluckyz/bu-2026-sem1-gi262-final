@@ -15,6 +15,7 @@ public class DodgeCooldownUI : MonoBehaviour
     private Image mask;
     private Text cooldownText;
     private Text label;
+    private bool hintAdded;
 
     private void Start()
     {
@@ -30,11 +31,25 @@ public class DodgeCooldownUI : MonoBehaviour
 
     private void Update()
     {
+        if (!hintAdded) AddControlHint();
         if (mask == null) return;
         float remaining = player.DodgeCooldownRemaining;
         mask.fillAmount = player.DodgeCooldown > 0f ? remaining / player.DodgeCooldown : 0f;
         cooldownText.text = remaining > 0f ? remaining.ToString("0.0") : "";
         label.enabled = remaining <= 0f; // พร้อมกด = โชว์คำว่า DODGE
+    }
+
+    // เติม "Shift Dash" ต่อท้ายป้ายปุ่มมุมซ้ายล่างของ GameplayHUD (ไม่แก้สคริปต์เพื่อน แค่หา Text แล้วต่อข้อความ)
+    private void AddControlHint()
+    {
+        Text[] texts = FindObjectsByType<Text>(FindObjectsSortMode.None);
+        for (int i = 0; i < texts.Length; i++)
+        {
+            if (!texts[i].text.Contains("LMB")) continue;
+            if (!texts[i].text.Contains("Shift")) texts[i].text += "     Shift  Dash";
+            hintAdded = true;
+            return;
+        }
     }
 
     private void Build(Transform hud)
