@@ -57,6 +57,10 @@ public class Player : Character
     [SerializeField] private float dashSpeed = 12f;     // เร็วกว่าเดินปกติมาก
     [SerializeField] private float dashTime = 0.35f;    // พุ่งนานแค่ไหน (วินาที) — คูลดาวน์อยู่ใน SkillData
     private bool isDashing;
+
+    [Header("Dodge (Shift)")]
+    [SerializeField] private float dodgeCooldown = 0.8f; // กลิ้งหลบด้วย Shift: ไม่มีดาเมจ แค่หลบ (คนละอย่างกับสกิล Dash)
+    private float lastDodgeTime = -99f;
     private bool isCasting; // กำลังเล่นท่าสกิล 2/3
 
     [Header("Hurt")]
@@ -170,6 +174,15 @@ public class Player : Character
         StartCoroutine(DashRoutine(damage, hitRadius));
     }
 
+    // Shift = พุ่งหลบ ใช้ท่าและการเคลื่อนที่เดียวกับ Dash แต่ไม่ทำดาเมจ ไม่ต้องมีสกิล อมตะระหว่างพุ่ง
+    public void Dodge()
+    {
+        if (isDashing || isCasting) return;
+        if (Time.time - lastDodgeTime < dodgeCooldown) return;
+        lastDodgeTime = Time.time;
+        Dash(0f, 0f);
+    }
+
     private IEnumerator DashRoutine(float damage, float hitRadius)
     {
         isDashing = true;
@@ -194,7 +207,8 @@ public class Player : Character
             controller.Move(direction * dashSpeed * Time.deltaTime);
             timer += Time.deltaTime;
 
-            // ศัตรูที่พุ่งผ่าน โดนดาเมจ
+            // ศัตรูที่พุ่งผ่าน โดนดาเมจ (หลบด้วย Shift ดาเมจ 0 ข้ามไป)
+            if (damage <= 0f) { yield return null; continue; }
             List<Character> targets = FindTargetsInRadius(hitRadius);
             for (int i = 0; i < targets.Count; i++)
             {
@@ -407,6 +421,7 @@ public class Player : Character
         if (keyboard.digit2Key.wasPressedThisFrame) UseSkillSlot(1);
         if (keyboard.digit3Key.wasPressedThisFrame) UseSkillSlot(2);
         if (keyboard.pKey.wasPressedThisFrame) PrintSkills();
+        if (keyboard.leftShiftKey.wasPressedThisFrame || keyboard.rightShiftKey.wasPressedThisFrame) Dodge();
     }
     #endregion
 

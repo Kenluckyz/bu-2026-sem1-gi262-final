@@ -16,6 +16,9 @@ public class UpgradeUI : MonoBehaviour
     [Header("รูป (ตั้งให้อัตโนมัติจากเมนู)")]
     [SerializeField] private Sprite iconBackground; // circle_slot
     [SerializeField] private Sprite iconRing;       // skill_slot_ring
+    [SerializeField] private Sprite bannerCloth;    // upgrade_banner_cloth (ผ้าสีขาว ย้อมสีตามสกิล)
+    [SerializeField] private Sprite bannerTrim;     // upgrade_banner_trim (ขอบทอง ไม้แขวน)
+    [SerializeField] private Sprite bannerGlow;     // upgrade_banner_glow (เงาเรืองแสงตอนชี้)
 
     // สีโทนไม้ให้เข้ากับ HUD ของ Boat
     private static readonly Color WoodDark = new Color(0.24f, 0.14f, 0.07f, 0.97f);
@@ -38,6 +41,9 @@ public class UpgradeUI : MonoBehaviour
     private class Card
     {
         public GameObject root;
+        public Image cloth;
+        public Image glow;
+        public UpgradeCardMotion motion;
         public Image icon;
         public Text iconLabel;
         public Text nameText;
@@ -123,6 +129,10 @@ public class UpgradeUI : MonoBehaviour
             if (has) FillCard(cards[i], currentOptions[i]);
         }
         panel.SetActive(true);
+        for (int i = 0; i < cards.Count; i++)
+        {
+            if (cards[i].root.activeSelf) cards[i].motion.PlayIntro(i * 0.08f); // ธงเลื่อนลงมาทีละผืน
+        }
     }
 
     private void FillCard(Card card, UpgradeData upgrade)
@@ -132,11 +142,13 @@ public class UpgradeUI : MonoBehaviour
         card.icon.enabled = sprite != null;
         card.iconLabel.text = sprite == null ? StatLabel(upgrade) : "";
         card.nameText.text = upgrade.DisplayName;
+        card.cloth.color = upgrade.cardColor;
+        card.glow.color = Color.Lerp(upgrade.cardColor, Color.white, 0.5f);
 
         if (upgrade.type == UpgradeType.Skill)
         {
             int level = player.GetSkillLevel(upgrade.skill.skillName);
-            card.levelText.text = level == 0 ? "NEW!" : "Lv." + level + " > " + (level + 1);
+            card.levelText.text = level == 0 ? "NEW!" : Stars(level, upgrade.skill.maxLevel);
             card.descText.text = !string.IsNullOrEmpty(upgrade.description) ? upgrade.description : upgrade.skill.description;
         }
         else
@@ -145,6 +157,17 @@ public class UpgradeUI : MonoBehaviour
             card.levelText.text = amount;
             card.descText.text = upgrade.description;
         }
+    }
+
+    // ★ = เลเวลที่มีแล้ว, ☆ ตัวแรก = เลเวลที่จะได้ (เช่น Lv.2 -> 3 = ★★☆)
+    private string Stars(int level, int maxLevel)
+    {
+        string text = "Lv." + level + " > " + (level + 1) + System.Environment.NewLine;
+        for (int i = 0; i < maxLevel; i++)
+        {
+            text += i < level ? "★" : (i == level ? "<color=#FFFFFF>☆</color>" : "<color=#00000055>☆</color>");
+        }
+        return text;
     }
 
     private string StatLabel(UpgradeData upgrade)
@@ -198,67 +221,74 @@ public class UpgradeUI : MonoBehaviour
         Stretch(panel.GetComponent<RectTransform>());
         panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
 
-        titleText = MakeText(panel.transform, "Title", 64, Gold, new Vector2(0f, 360f), new Vector2(1200f, 100f));
+        titleText = MakeText(panel.transform, "Title", 64, Gold, new Vector2(0f, 420f), new Vector2(1200f, 100f));
         titleText.gameObject.AddComponent<Outline>().effectColor = WoodDark;
-        Text hint = MakeText(panel.transform, "Hint", 26, Cream, new Vector2(0f, 290f), new Vector2(1200f, 50f));
+        Text hint = MakeText(panel.transform, "Hint", 26, Cream, new Vector2(0f, 355f), new Vector2(1200f, 50f));
         hint.text = "เลือกอัปเกรด 1 อย่าง (คลิก หรือกด 1 / 2 / 3)";
 
         for (int i = 0; i < optionCount; i++)
         {
             float x = (i - (optionCount - 1) / 2f) * 440f;
-            cards.Add(BuildCard(panel.transform, i, new Vector2(x, -40f)));
+            cards.Add(BuildCard(panel.transform, i, new Vector2(x, -90f)));
         }
     }
 
+    // การ์ด = ธงแขวน: เงาเรือง (ชี้แล้วโผล่) -> ผ้าย้อมสี -> ขอบทอง -> ไอคอน -> ตัวหนังสือ
     private Card BuildCard(Transform parent, int index, Vector2 pos)
     {
         Card card = new Card();
-        // กรอบไม้เข้มขอบทอง + ไม้อ่อนด้านใน
+        Vector2 size = new Vector2(344f, 640f); // สัดส่วนเดียวกับรูปธง (519 x 967)
         GameObject root = new GameObject("Card" + (index + 1), typeof(RectTransform), typeof(Image), typeof(Button));
         root.transform.SetParent(parent, false);
         RectTransform rt = root.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(380f, 520f);
+        rt.sizeDelta = size;
         rt.anchoredPosition = pos;
-        root.GetComponent<Image>().color = WoodDark;
-        Outline outline = root.AddComponent<Outline>();
-        outline.effectColor = Gold;
-        outline.effectDistance = new Vector2(4f, -4f);
+        Image hit = root.GetComponent<Image>();
+        hit.sprite = bannerGlow;
+        hit.color = new Color(1f, 1f, 1f, 0f); // มองไม่เห็น แต่ใช้รับคลิกตามรูปธง
+
 
         Button button = root.GetComponent<Button>();
-        ColorBlock colors = button.colors;
-        colors.highlightedColor = new Color(1f, 0.85f, 0.55f);
-        colors.pressedColor = new Color(0.7f, 0.7f, 0.7f);
-        button.colors = colors;
+        button.transition = Selectable.Transition.None; // เด้ง/เรืองแสงทำเองใน UpgradeCardMotion
         int captured = index;
         button.onClick.AddListener(() => Pick(captured));
 
-        GameObject inner = new GameObject("Inner", typeof(RectTransform), typeof(Image));
-        inner.transform.SetParent(root.transform, false);
-        RectTransform innerRt = inner.GetComponent<RectTransform>();
-        Stretch(innerRt);
-        innerRt.offsetMin = new Vector2(14f, 14f);
-        innerRt.offsetMax = new Vector2(-14f, -14f);
-        Image innerImg = inner.GetComponent<Image>();
-        innerImg.color = WoodLight;
-        innerImg.raycastTarget = false;
+        card.glow = MakeImage(root.transform, "Glow", bannerGlow, Vector2.zero, size * 1.07f);
+        card.cloth = MakeImage(root.transform, "Cloth", bannerCloth, Vector2.zero, size);
+        MakeImage(root.transform, "Trim", bannerTrim, Vector2.zero, size);
 
-        // ไอคอนวงกลมแบบช่องสกิลใน HUD
-        Image bg = MakeImage(root.transform, "IconBG", iconBackground, new Vector2(0f, 120f), new Vector2(170f, 170f));
+        // ไอคอนวงกลมทับกรอบข้าวหลามตัดบนไม้แขวน
+        Vector2 iconPos = new Vector2(0f, 262f);
+        Image bg = MakeImage(root.transform, "IconBG", iconBackground, iconPos, new Vector2(150f, 150f));
         bg.color = new Color(0.15f, 0.1f, 0.06f);
-        card.icon = MakeImage(root.transform, "Icon", null, new Vector2(0f, 120f), new Vector2(150f, 150f));
-        card.iconLabel = MakeText(root.transform, "IconLabel", 48, Gold, new Vector2(0f, 120f), new Vector2(160f, 160f));
-        MakeImage(root.transform, "Ring", iconRing, new Vector2(0f, 120f), new Vector2(196f, 196f));
+        card.icon = MakeImage(root.transform, "Icon", null, iconPos, new Vector2(132f, 132f));
+        card.iconLabel = MakeText(root.transform, "IconLabel", 44, Gold, iconPos, new Vector2(140f, 140f));
+        MakeImage(root.transform, "Ring", iconRing, iconPos, new Vector2(176f, 176f));
 
-        Text key = MakeText(root.transform, "Key", 30, Cream, new Vector2(-150f, 220f), new Vector2(50f, 50f));
+        Text key = MakeText(root.transform, "Key", 28, Cream, new Vector2(-120f, 200f), new Vector2(50f, 50f));
         key.text = (index + 1).ToString();
+        key.gameObject.AddComponent<Outline>().effectColor = WoodDark;
 
-        card.nameText = MakeText(root.transform, "Name", 38, Gold, new Vector2(0f, -10f), new Vector2(340f, 56f));
-        card.nameText.gameObject.AddComponent<Outline>().effectColor = WoodDark;
-        card.levelText = MakeText(root.transform, "Level", 28, Color.white, new Vector2(0f, -60f), new Vector2(340f, 40f));
-        card.descText = MakeText(root.transform, "Desc", 24, Cream, new Vector2(0f, -160f), new Vector2(320f, 150f));
+        card.nameText = MakeText(root.transform, "Name", 40, Color.white, new Vector2(0f, 135f), new Vector2(300f, 56f));
+        AddShadow(card.nameText);
+        card.descText = MakeText(root.transform, "Desc", 24, Color.white, new Vector2(0f, 0f), new Vector2(270f, 180f));
         card.descText.alignment = TextAnchor.UpperCenter;
+        AddShadow(card.descText);
+        card.levelText = MakeText(root.transform, "Level", 30, Gold, new Vector2(0f, -170f), new Vector2(300f, 90f));
+        card.levelText.supportRichText = true;
+        AddShadow(card.levelText);
+
+        card.motion = root.AddComponent<UpgradeCardMotion>();
+        card.motion.SetUP(card.glow);
         card.root = root;
         return card;
+    }
+
+    private static void AddShadow(Text text)
+    {
+        Outline outline = text.gameObject.AddComponent<Outline>();
+        outline.effectColor = new Color(0.15f, 0.07f, 0.02f, 0.9f);
+        outline.effectDistance = new Vector2(2f, -2f);
     }
 
     private Image MakeImage(Transform parent, string objName, Sprite sprite, Vector2 pos, Vector2 size)

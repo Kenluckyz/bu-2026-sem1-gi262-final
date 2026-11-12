@@ -63,6 +63,9 @@ public static class UpgradeSceneBuilder
         uiSo.FindProperty("upgradeManager").objectReferenceValue = manager;
         uiSo.FindProperty("iconBackground").objectReferenceValue = LoadSprite("circle_slot");
         uiSo.FindProperty("iconRing").objectReferenceValue = LoadSprite("skill_slot_ring");
+        uiSo.FindProperty("bannerCloth").objectReferenceValue = LoadSprite("upgrade_banner_cloth");
+        uiSo.FindProperty("bannerTrim").objectReferenceValue = LoadSprite("upgrade_banner_trim");
+        uiSo.FindProperty("bannerGlow").objectReferenceValue = LoadSprite("upgrade_banner_glow");
         uiSo.ApplyModifiedPropertiesWithoutUndo();
 
         EditorSceneManager.MarkSceneDirty(scene);
@@ -80,15 +83,15 @@ public static class UpgradeSceneBuilder
         }
 
         List<UpgradeData> result = new List<UpgradeData>();
-        AddSkill(result, "Dash", "พุ่งไปข้างหน้า ทำดาเมจศัตรูที่พุ่งผ่าน และหลบการโจมตีระหว่างพุ่ง");
-        AddSkill(result, "OverPunch", "ต่อยแรงเป็นรูปกรวยข้างหน้า โดนศัตรูหลายตัว");
-        AddSkill(result, "FinalExecution", "ท่าไม้ตายดาเมจสูง ปิดเกมศัตรูที่อยู่ใกล้");
+        AddSkill(result, "Dash", new Color(0.95f, 0.62f, 0.08f), "พุ่งไปข้างหน้า ทำดาเมจศัตรูที่พุ่งผ่าน และหลบการโจมตีระหว่างพุ่ง");
+        AddSkill(result, "OverPunch", new Color(1f, 0.45f, 0.1f), "ต่อยแรงเป็นรูปกรวยข้างหน้า โดนศัตรูหลายตัว");
+        AddSkill(result, "FinalExecution", new Color(0.85f, 0.12f, 0.15f), "ท่าไม้ตายดาเมจสูง ปิดเกมศัตรูที่อยู่ใกล้");
         // อัปแค่สกิล 3 ตัว (ช่องสกิลปุ่ม 1/2/3) — อยากได้ Stat เพิ่มภายหลังใช้ AddStat(...) ได้
         AssetDatabase.SaveAssets();
         return result;
     }
 
-    private static void AddSkill(List<UpgradeData> result, string skillFile, string description)
+    private static void AddSkill(List<UpgradeData> result, string skillFile, Color color, string description)
     {
         SkillData skill = AssetDatabase.LoadAssetAtPath<SkillData>(SkillFolder + "/" + skillFile + ".asset");
         if (skill == null)
@@ -102,6 +105,7 @@ public static class UpgradeSceneBuilder
         data.upgradeName = "";   // ใช้ชื่อสกิล
         data.icon = null;        // ใช้ไอคอนสกิล (icon_*.png)
         data.description = description;
+        data.cardColor = color;
         EditorUtility.SetDirty(data);
         result.Add(data);
     }
@@ -132,8 +136,23 @@ public static class UpgradeSceneBuilder
         return data;
     }
 
+    // โหลดรูปจาก Art/UI และตั้งให้เป็น Sprite ถ้ายังไม่ได้ตั้ง (แบบเดียวกับ SceneBuilder)
     private static Sprite LoadSprite(string fileName)
     {
-        return AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Game/Art/UI/" + fileName + ".png");
+        string path = "Assets/_Game/Art/UI/" + fileName + ".png";
+        TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer == null)
+        {
+            Debug.LogError("ไม่พบรูป " + path);
+            return null;
+        }
+        if (importer.textureType != TextureImporterType.Sprite)
+        {
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.mipmapEnabled = false;
+            importer.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 }

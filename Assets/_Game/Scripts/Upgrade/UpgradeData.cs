@@ -11,6 +11,7 @@ public class UpgradeData : ScriptableObject
     [TextArea] public string description;
     public Sprite icon;                  // เว้นว่างได้ถ้าเป็น Skill จะใช้ไอคอนสกิลแทน
     public UpgradeType type;
+    public Color cardColor = new Color(0.3f, 0.55f, 1f); // สีผ้าธงบนการ์ด
 
     [Header("Stat")]
     public StatType statType;
