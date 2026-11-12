@@ -13,6 +13,7 @@ public class BossCutscene : MonoBehaviour
 {
     [SerializeField] private GameObject summonVFX;          // VFX/BossTalismans/BossTalismans.prefab (3D)
     [SerializeField] private float summonScale = 1.6f;
+    [SerializeField] private float summonLift = 0.25f;      // ยกวงยันต์ขึ้นจากพื้น ไม่ให้แผ่นพื้นบัง
     [SerializeField] private string bossTitle = "ORC WARLORD";
     [SerializeField] private string bossSubtitle = "เจ้าแห่งบัลลังก์โลหิต";
     [SerializeField] private float moveTime = 0.8f;         // กล้องเลื่อนไป/กลับกี่วิ
@@ -21,8 +22,8 @@ public class BossCutscene : MonoBehaviour
     [SerializeField] private float holdAfterReveal = 2.2f;  // ช็อตฮีโร่หมุนรอบตัว + ชื่อ กี่วิ
     [SerializeField] private float shakeStrength = 0.25f;
     [Header("โคลสอัปหน้าบอส (เท่าของความสูงบอส ยิ่งน้อยยิ่งใกล้)")]
-    [SerializeField] private float closeStart = 0.55f;  // ระยะกล้องตอนบอสเพิ่งโผล่
-    [SerializeField] private float closeEnd = 0.3f;     // ระยะกล้องตอนจบ (ดันเข้ามาถึงตรงนี้)
+    [SerializeField] private float closeStart = 0.4f;   // ระยะกล้องตอนบอสเพิ่งโผล่
+    [SerializeField] private float closeEnd = 0.22f;     // ระยะกล้องตอนจบ (ดันเข้ามาถึงตรงนี้)
     [SerializeField] private float closeZoomFov = 8f;   // ซูมกระแทกตอนบอสโผล่ (ลด FOV ชั่วครู่)
     [SerializeField] private float cutsceneFov = 28f;   // เลนส์แคบตลอด cutscene = ภาพแน่น ไม่เห็นแมพ
 
@@ -69,11 +70,13 @@ public class BossCutscene : MonoBehaviour
         {
             if (!r.enabled) continue; // ชิ้นที่บอสปิดไว้เอง (แสงตอนโดนตี) ห้ามเปิดคืน
             bossRenderers.Add(r);
-            if (!(r is SkinnedMeshRenderer) && !(r is MeshRenderer)) continue;
+            if (!(r is SkinnedMeshRenderer)) continue; // วัดเฉพาะตัวโมเดล (ชิ้นอื่นเช่นวงพื้น/แถบเลือดทำให้สูงเกินจริง)
             if (!hasBounds) { body = r.bounds; hasBounds = true; }
             else body.Encapsulate(r.bounds);
         }
-        float H = Mathf.Max(1.5f, body.size.y);
+        float H = Mathf.Clamp(body.size.y, 1.5f, 8f);
+        CharacterController cc = boss.GetComponent<CharacterController>();
+        if (!hasBounds && cc != null) H = cc.height * boss.transform.localScale.y;
         Vector3 feet = boss.transform.position;
         Vector3 head = new Vector3(feet.x, body.max.y - H * 0.18f, feet.z);
         Vector3 fwd = boss.transform.forward;
@@ -122,7 +125,7 @@ public class BossCutscene : MonoBehaviour
         NFEffect fx = null;
         if (summonVFX != null)
         {
-            fx = Instantiate(summonVFX, feet, Quaternion.Euler(0f, boss.transform.eulerAngles.y, 0f)).GetComponent<NFEffect>();
+            fx = Instantiate(summonVFX, feet + Vector3.up * summonLift, Quaternion.Euler(0f, boss.transform.eulerAngles.y, 0f)).GetComponent<NFEffect>();
             fx.transform.localScale = Vector3.one * summonScale;
             fx.loop = false;
             fx.playing = false;
@@ -156,7 +159,7 @@ public class BossCutscene : MonoBehaviour
         }
 
         // 5. ช็อตฮีโร่: มุมต่ำมาก กล้องหมุนรอบตัวบอสครึ่งวง เห็นเต็มตัวทะมึน + ชื่อกระแทกลงจอ
-        float heroDist = H * 1.6f;
+        float heroDist = H * 2.4f; // ห่างพอเห็นเต็มตัว
         float startAngle = 35f, endAngle = -35f; // องศารอบตัวบอส (0 = หน้าตรง)
         shownTime = 0f;
         while (shownTime < holdAfterReveal)
@@ -166,8 +169,8 @@ public class BossCutscene : MonoBehaviour
             if (fx != null) fx.time = Mathf.Min(fxTime, summonTime + faceTime + shownTime);
             float ang = Mathf.Lerp(startAngle, endAngle, Mathf.SmoothStep(0f, 1f, k));
             Vector3 dir = Quaternion.AngleAxis(ang, Vector3.up) * fwd;
-            Vector3 p = feet + dir * heroDist + Vector3.up * H * 0.15f;           // ต่ำระดับเข่า มองเงย
-            Vector3 look = feet + Vector3.up * H * 0.7f;
+            Vector3 p = feet + dir * heroDist + Vector3.up * H * 0.25f;           // ต่ำระดับเข่า มองเงย
+            Vector3 look = feet + Vector3.up * H * 0.45f; // บอสอยู่กลางจอค่อนบน ชื่ออยู่ล่าง ไม่บัง
             float shake = Mathf.Max(0f, 1f - shownTime / 0.35f) * shakeStrength * 0.6f;
             p += (Vector3)(Random.insideUnitCircle * shake);
             cam.transform.SetPositionAndRotation(p, Quaternion.LookRotation(look - p));
@@ -281,9 +284,9 @@ public class BossCutscene : MonoBehaviour
         bottom = MakeBar(canvasObj.transform, "BottomBar", new Vector2(0f, 0f));
 
         Font font = Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Tahoma" }, 32);
-        title = MakeText(canvasObj.transform, "Title", font, 96, new Vector2(0f, -330f));
+        title = MakeText(canvasObj.transform, "Title", font, 96, new Vector2(0f, 260f));
         title.text = bossTitle;
-        subtitle = MakeText(canvasObj.transform, "Subtitle", font, 36, new Vector2(0f, -410f));
+        subtitle = MakeText(canvasObj.transform, "Subtitle", font, 36, new Vector2(0f, 185f));
         subtitle.text = bossSubtitle;
         return canvasObj;
     }
@@ -327,7 +330,7 @@ public class BossCutscene : MonoBehaviour
         GameObject obj = new GameObject(objName, typeof(RectTransform), typeof(Text));
         obj.transform.SetParent(parent, false);
         RectTransform rt = obj.GetComponent<RectTransform>();
-        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f); // ชิดล่าง เหนือแถบดำ ไม่บังตัวบอส
         rt.sizeDelta = new Vector2(1400f, 130f);
         rt.anchoredPosition = pos;
         Text text = obj.GetComponent<Text>();

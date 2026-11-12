@@ -11,7 +11,7 @@ public class BossSkillVFX : MonoBehaviour
     [SerializeField] private GameObject spearRing;     // VFX/BossSpearRing/BossSpearRing.prefab
     [SerializeField] private float craterScale = 1.8f;   // ขยายจากขนาดใน Lab ปรับให้พอดีวงดาเมจ
     [SerializeField] private float spearRingScale = 2.2f;
-    [SerializeField] private float groundLift = 0.05f;   // ยกจากพื้นนิดเดียว ไม่จมพื้น
+    [SerializeField] private float groundLift = 0.2f;    // ยกพ้นแผ่นพื้น ไม่จมดิน
 
     private OrcBoss boss;
     private Animator bossAnimator;
