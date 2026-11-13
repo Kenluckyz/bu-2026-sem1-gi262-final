@@ -1,12 +1,8 @@
+
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-
-// คุมภาพรวมของเกม (GameManager ตาม Diagram)
-// - Boat ตาย -> Game Over / บอสตาย -> Victory -> กด R หรือปุ่ม เล่นใหม่
-// - Esc = หยุดเกม
-// - นับเวลาที่เล่นกับจำนวนศัตรูที่ฆ่า ไว้โชว์ตอนจบ
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
@@ -18,11 +14,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameplayHUD hud;
     [SerializeField] private int currentLevel = 1;
 
+    // เพิ่ม: หน้าจอแพ้และชนะ
+    [Header("Result Screens")]
+    [SerializeField] private GameObject defeatScreen;
+    [SerializeField] private GameObject victoryScreen;
+
     [Header("Game Feel")]
     [Tooltip("บอสตาย: สโลว์โมชันช้าแค่ไหน (0.25 = ช้าลง 4 เท่า)")]
     [SerializeField] private float bossKillSlowMotion = 0.25f;
-    [SerializeField] private float bossKillSlowTime = 1.5f;   // วินาทีจริง
-    [SerializeField] private float gameOverDelay = 2f;        // รอท่าตายเล่นจบก่อนขึ้นหน้าจบ
+    [SerializeField] private float bossKillSlowTime = 1.5f;   
+    [SerializeField] private float gameOverDelay = 2f;       
 
     private int killCount;
     private float startTime;
@@ -32,7 +33,13 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        Time.timeScale = 1f; // กันค้างสโลว์/หยุด จากรอบก่อน
+        Time.timeScale = 1f; 
+
+        if (defeatScreen != null)
+            defeatScreen.SetActive(false);
+
+        if (victoryScreen != null)
+            victoryScreen.SetActive(false);
     }
 
     private void Start()
@@ -90,8 +97,6 @@ public class GameManager : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    // ปุ่มลัดไว้ทดสอบใน Editor เท่านั้น (Build จริงไม่มี)
-    // F8 = อมตะ / F9 = ฆ่าศัตรูทั้งหมด / F10 = วาร์ปไปห้องถัดไป (ห้องตอนนี้ต้องผ่านแล้ว) / F11 = บอสเลือดลด 20%
     private bool godMode;
 
     private void DebugKeys(Keyboard keyboard)
@@ -145,12 +150,19 @@ public class GameManager : MonoBehaviour
             hud.ShowPause(false);
         }
     }
-
-    // เล่นใหม่ = โหลดซีนนี้ใหม่ทั้งหมด (ศัตรู/ประตู/เลือด กลับไปเริ่มต้น)
     public void Restart()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void ExitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     #region Events
@@ -182,6 +194,9 @@ public class GameManager : MonoBehaviour
         Debug.Log("[GameManager] Game Over");
         yield return new WaitForSecondsRealtime(gameOverDelay);
         hud.ShowEnd(false, Time.time - startTime, killCount);
+
+        if (defeatScreen != null)
+            defeatScreen.SetActive(true);
     }
 
     private IEnumerator VictoryRoutine()
@@ -190,10 +205,8 @@ public class GameManager : MonoBehaviour
         float playTime = Time.time - startTime;
         Debug.Log("[GameManager] Victory! เวลา " + playTime.ToString("0.0") + " วินาที ฆ่า " + killCount + " ตัว");
 
-        // 1. ลูกน้องที่เหลือตายตามบอส
         StartCoroutine(KillRemainingEnemies());
 
-        // 2. สโลว์โมชันตอนบอสล้ม
         Time.timeScale = bossKillSlowMotion;
         yield return new WaitForSecondsRealtime(bossKillSlowTime);
         Time.timeScale = 1f;
@@ -201,15 +214,15 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(1.2f);
         hud.ShowEnd(true, playTime, killCount);
+
+        if (victoryScreen != null)
+            victoryScreen.SetActive(true);
     }
 
-    // ฆ่าศัตรูที่เหลือทั้งหมด: ทำหลายเฟรม เพราะสไลม์ตัวใหญ่ตายแล้วแตกเป็นตัวเล็ก
-    // (ตัวเล็กที่เพิ่งเกิดยังไม่ได้ SetUP ในเฟรมนั้น ต้องรอเฟรมถัดไปถึงจะตีโดน)
     private IEnumerator KillRemainingEnemies()
     {
         for (int pass = 0; pass < 10 && enemyManager.GetAliveCount() > 0; pass++)
         {
-            // ก็อปรายการก่อน เพราะศัตรูตายแล้วจะถูกลบออกจาก AliveEnemies ระหว่างวนลูป
             Enemy[] alive = new Enemy[enemyManager.AliveEnemies.Count];
             for (int i = 0; i < alive.Length; i++) alive[i] = enemyManager.AliveEnemies[i];
             for (int i = 0; i < alive.Length; i++)
