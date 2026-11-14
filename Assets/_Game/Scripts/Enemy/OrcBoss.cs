@@ -529,8 +529,9 @@ public class OrcBoss : Enemy
         return Vector3.Angle(forward, d) <= angle / 2f;
     }
 
-    private void HitTarget(float damage, string skillName)
+    private void HitTarget(float baseDamage, string skillName)
     {
+        float damage = ScaleDamage(baseDamage); // สกิลบอสแรงขึ้นตามเลเวลด้วย
         target.TakeDamage(damage);
         Debug.Log(characterName + " " + skillName + "โดน " + target.characterName + " : " + damage);
     }

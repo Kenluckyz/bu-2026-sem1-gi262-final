@@ -110,7 +110,8 @@ public class GameplayHUD : MonoBehaviour
         else if (room.isBossRoom) waveText.text = "BOSS FIGHT";
         else waveText.text = "WAVE  " + Mathf.Max(room.CurrentWaveNumber, 1) + " / " + room.WaveCount;
         int alive = enemyManager != null ? enemyManager.GetAliveCount() : 0;
-        countText.text = room.IsCleared ? "Go to the next chamber" : alive + (alive == 1 ? " ENEMY LEFT" : " ENEMIES LEFT");
+        if (room.IsCleared) countText.text = room.isBossRoom ? "Dungeon cleared!" : "Go to the next chamber";
+        else countText.text = alive + (alive == 1 ? " ENEMY LEFT" : " ENEMIES LEFT");
     }
 
     #region Public
@@ -127,7 +128,7 @@ public class GameplayHUD : MonoBehaviour
     {
         boss = enemy;
         bossBar.SetActive(true);
-        bossName.text = enemy.characterName.ToUpper();
+        bossName.text = enemy.characterName.ToUpper() + "   LV." + enemy.Level; // บอสเก่งขึ้นตามเลเวลผู้เล่น
         bossRatio = 1f;
         trailRatio = 1f;
         boss.OnHPChanged += UpdateBoss;

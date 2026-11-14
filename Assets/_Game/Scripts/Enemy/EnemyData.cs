@@ -16,6 +16,12 @@ public class EnemyData : ScriptableObject
     public int expDrop = 10;
     public float modelScale = 1f;
 
+    [Header("Level Scaling - เก่งขึ้นตามเลเวลผู้เล่น")]
+    [Tooltip("เลือดเพิ่มกี่ส่วนต่อ 1 เลเวล (0.15 = +15% ต่อเลเวล)")]
+    public float hpPerLevel = 0.15f;
+    [Tooltip("ดาเมจเพิ่มกี่ส่วนต่อ 1 เลเวล (0.1 = +10% ต่อเลเวล)")]
+    public float damagePerLevel = 0.1f;
+
     [Header("Movement")]
     public float moveSpeed = 3f;
     [Tooltip("ผู้เล่นเข้ามาใกล้กว่านี้ถึงจะเริ่มไล่")]
@@ -45,4 +51,16 @@ public class EnemyData : ScriptableObject
     public EnemyData splitInto;
     [Tooltip("แตกออกมากี่ตัว")]
     public int splitCount = 2;
+
+    // ตัวคูณเลือดที่เลเวลนั้น: เลเวล 1 = x1, เลเวล 2 = x1.15, เลเวล 3 = x1.30 ...
+    public float HPMultiplier(int level)
+    {
+        return 1f + hpPerLevel * Mathf.Max(level - 1, 0);
+    }
+
+    // ตัวคูณดาเมจที่เลเวลนั้น
+    public float DamageMultiplier(int level)
+    {
+        return 1f + damagePerLevel * Mathf.Max(level - 1, 0);
+    }
 }

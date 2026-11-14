@@ -108,6 +108,12 @@ public class GameManager : MonoBehaviour
             Debug.Log("[Debug] God Mode : " + godMode);
         }
         if (godMode && player.IsAlive) player.Heal(player.MaxHP);
+        if (keyboard.f7Key.wasPressedThisFrame || keyboard.lKey.wasPressedThisFrame)
+        {
+            // F7 หรือ L = เลเวลอัป 1 ครั้ง (ไว้ดูศัตรูเก่งขึ้นตามเลเวล)
+            player.Stats.AddExp(player.Stats.ExpToNextLevel - player.Stats.Exp);
+            Debug.Log("[Debug] ผู้เล่นเลเวล " + player.Stats.Level + " -> ศัตรูที่เกิดใหม่เลเวล " + enemyManager.GetEnemyLevel());
+        }
         if (keyboard.f9Key.wasPressedThisFrame)
         {
             Debug.Log("[Debug] ฆ่าศัตรูทั้งหมด");

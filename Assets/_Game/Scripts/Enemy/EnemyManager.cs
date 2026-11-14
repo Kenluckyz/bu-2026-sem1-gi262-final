@@ -14,6 +14,11 @@ public class EnemyManager : MonoBehaviour
     [Header("ล้อมผู้เล่น")]
     [Tooltip("แจกช่องรอบตัวผู้เล่นใหม่ทุกกี่วินาที")]
     [SerializeField] private float slotRefreshTime = 0.5f;
+    [Header("เก่งขึ้นตามเลเวลผู้เล่น")]
+    [Tooltip("ศัตรูที่เกิดใหม่ได้เลเวลเท่าผู้เล่น -> เลือด/ดาเมจคูณตาม hpPerLevel / damagePerLevel ใน EnemyData")]
+    [SerializeField] private bool scaleWithPlayerLevel = true;
+    [Tooltip("เลเวลศัตรูสูงสุด (กันตัวเลขพุ่งเกิน)")]
+    [SerializeField] private int maxEnemyLevel = 20;
 
     // ศัตรูที่ยังไม่ตาย (List ตาม Diagram) — เพิ่มตอนเกิด ลบตอนตาย
     private List<Enemy> aliveEnemies = new List<Enemy>();
@@ -110,7 +115,13 @@ public class EnemyManager : MonoBehaviour
 
         Enemy enemy = Instantiate(data.prefab, position, rotation);
         enemy.name = data.enemyName;
-        enemy.Init(data, player);
+        int level = GetEnemyLevel();
+        enemy.Init(data, player, level);
+        if (level > 1)
+        {
+            Debug.Log("[EnemyManager] " + data.enemyName + " Lv." + level + " HP x" + data.HPMultiplier(level).ToString("0.00")
+                + " Damage x" + data.DamageMultiplier(level).ToString("0.00"));
+        }
         Register(enemy);
         return enemy;
     }
@@ -132,6 +143,13 @@ public class EnemyManager : MonoBehaviour
         enemy.SetManager(this);
         slotTimer = 0f; // มีตัวใหม่ แจกช่องใหม่ทันที
         enemy.OnDied += HandleEnemyDied;
+    }
+
+    // เลเวลของศัตรูที่จะเกิด = เลเวลผู้เล่นตอนนี้ (ไม่เกิน maxEnemyLevel)
+    public int GetEnemyLevel()
+    {
+        if (!scaleWithPlayerLevel || player == null) return 1;
+        return Mathf.Clamp(player.Stats.Level, 1, maxEnemyLevel);
     }
 
     public int GetAliveCount()

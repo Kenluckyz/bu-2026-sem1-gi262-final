@@ -38,6 +38,8 @@ public class Enemy : Character
     protected bool isAttacking;
     protected bool isStunned;
     protected float lastAttackTime = -99f;
+    protected int level = 1;                // เลเวลของศัตรู = เลเวลผู้เล่นตอนเกิด
+    protected float damageMultiplier = 1f;  // ตัวคูณดาเมจตามเลเวล
     private float verticalVelocity;
     private Coroutine attackRoutine;
     private Coroutine stunRoutine;
@@ -65,13 +67,29 @@ public class Enemy : Character
         manager = enemyManager;
     }
     public override int ExpReward => data != null ? data.expDrop : 0;
+    public int Level => level;
+    // ดาเมจตีปกติที่คูณเลเวลแล้ว — ทุกท่าตีต้องใช้อันนี้ ไม่ใช้ data.damage ตรง ๆ
+    public float Damage => data != null ? ScaleDamage(data.damage) : 0f;
 
     // EnemyManager เรียกหลัง Instantiate (ก่อน Start) — ส่งข้อมูลกับเป้าหมายมาให้
     public virtual void Init(EnemyData enemyData, Player player)
     {
+        Init(enemyData, player, 1);
+    }
+
+    // Overload: ส่งเลเวลมาด้วย -> เลือด/ดาเมจคูณตามเลเวล (EnemyManager ใช้เลเวลผู้เล่น)
+    public virtual void Init(EnemyData enemyData, Player player, int enemyLevel)
+    {
         data = enemyData;
         target = player;
+        level = Mathf.Max(enemyLevel, 1);
         ApplyData();
+    }
+
+    // ดาเมจของท่าพิเศษ (ทุ่มหิน / สกิลบอส) ก็คูณเลเวลด้วยฟังก์ชันนี้
+    protected float ScaleDamage(float baseDamage)
+    {
+        return baseDamage * damageMultiplier;
     }
 
     public override void SetUP()
@@ -96,7 +114,9 @@ public class Enemy : Character
             return;
         }
         characterName = data.enemyName;
-        maxHP = data.maxHP;
+        // 1. คูณเลือดกับดาเมจตามเลเวล
+        maxHP = data.maxHP * data.HPMultiplier(level);
+        damageMultiplier = data.DamageMultiplier(level);
         moveSpeed = data.moveSpeed;
         transform.localScale = Vector3.one * data.modelScale;
         if (animator != null) animator.SetFloat("AttackSpeed", data.attackAnimSpeed);
@@ -199,7 +219,7 @@ public class Enemy : Character
         bool inFront = Vector3.Angle(transform.forward, toTarget) <= hitAngle;
         if (inRange && inFront)
         {
-            target.TakeDamage(data.damage);
+            target.TakeDamage(Damage);
         }
     }
 

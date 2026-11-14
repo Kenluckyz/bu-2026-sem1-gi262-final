@@ -74,8 +74,8 @@ public class GolemEnemy : Enemy
         toPlayer.y = 0f;
         if (toPlayer.magnitude <= slamRadius * scale)
         {
-            target.TakeDamage(data.damage);
-            Debug.Log(characterName + " ทุ่มพื้นโดน " + target.characterName + " : " + data.damage);
+            target.TakeDamage(Damage);
+            Debug.Log(characterName + " ทุ่มพื้นโดน " + target.characterName + " : " + Damage);
         }
     }
 
@@ -108,7 +108,7 @@ public class GolemEnemy : Enemy
         {
             Vector3 end = target.transform.position + Vector3.up * 0.8f;
             Rock rock = Instantiate(rockPrefab, start, Quaternion.identity);
-            rock.Launch(start, end, rockFlightTime, rockArcHeight, throwDamage, target);
+            rock.Launch(start, end, rockFlightTime, rockArcHeight, ScaleDamage(throwDamage), target);
         }
 
         // 4. ส่งแขนตามจนจบท่า

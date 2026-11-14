@@ -59,6 +59,6 @@ public class SkeletonEnemy : Enemy
 
         // 3. สร้างหินแล้วสั่งให้บินไป
         Rock rock = Instantiate(rockPrefab, start, Quaternion.identity);
-        rock.Launch(start, end, flightTime, arcHeight, data.damage, target);
+        rock.Launch(start, end, flightTime, arcHeight, Damage, target);
     }
 }
