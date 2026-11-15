@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-// หุ่นฝึกไว้ทดสอบการโจมตีของผู้เล่น ก่อนมี Enemy จริง — สืบทอดจาก Character
+// หุ่นไว้เทสตี ก่อนมีศัตรูจริง
 public class TrainingDummy : Character
 {
     [Header("Dummy")]
@@ -41,7 +41,7 @@ public class TrainingDummy : Character
         bodyRenderer.material.color = normalColor;
     }
 
-    // ตายแล้วหายไปสักพัก แล้วกลับมาเลือดเต็ม
+    // ตายแล้วรอแป๊บนึงเกิดใหม่
     private IEnumerator Respawn()
     {
         if (bodyRenderer != null) bodyRenderer.enabled = false;

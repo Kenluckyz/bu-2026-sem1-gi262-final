@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-// ค่าสถานะของผู้เล่น: Damage, EXP, Level — Player เป็นเจ้าของ (Composition)
+// ค่า stat ของผู้เล่น damage exp level
 [Serializable]
 public class PlayerStats
 {
@@ -16,15 +16,15 @@ public class PlayerStats
     public int Exp => exp;
     public int ExpToNextLevel => baseExpToLevel * level;
 
-    public event Action<int> OnLevelUp;          // ส่งเลเวลใหม่
-    public event Action<int, int> OnExpChanged;  // (exp ตอนนี้, exp ที่ต้องใช้)
+    public event Action<int> OnLevelUp; // ส่งเลเวลใหม่
+    public event Action<int, int> OnExpChanged; // exp ตอนนี้ / exp ที่ต้องใช้
 
     public void AddExp(int amount)
     {
         if (amount <= 0) return;
 
         exp += amount;
-        // while: ได้ EXP เยอะ ๆ ทีเดียวอาจขึ้นหลายเลเวล
+        // ใช้ while เพราะได้ exp เยอะอาจขึ้นหลายเลเวล
         while (exp >= ExpToNextLevel)
         {
             exp -= ExpToNextLevel;
@@ -40,7 +40,7 @@ public class PlayerStats
         damage += amount;
     }
 
-    // ให้ UI ได้ค่าเริ่มต้นตอนเปิดเกม
+    // ส่งค่าแรกให้ UI
     public void Refresh()
     {
         OnExpChanged?.Invoke(exp, ExpToNextLevel);

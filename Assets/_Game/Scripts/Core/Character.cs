@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-// คลาสแม่ของตัวละครทุกตัว (Player, Enemy, Boss) — แนวเดียวกับ Character ใน workshop week03
+// คลาสแม่ของตัวละครทุกตัว เหมือน Character ใน week3
 public abstract class Character : MonoBehaviour
 {
     [Header("Character")]
@@ -15,12 +15,12 @@ public abstract class Character : MonoBehaviour
     public float MaxHP => maxHP;
     public float CurrentHP => currentHP;
     public bool IsAlive => isAlive;
-    // EXP ที่ผู้เล่นได้เมื่อฆ่าตัวนี้ (Enemy override ให้ดึงจาก EnemyData)
+    // EXP ที่ได้ตอนฆ่า Enemy ไป override
     public virtual int ExpReward => 0;
 
-    // คนอื่นมาฟังได้ เช่น EnemyManager นับศัตรูที่ตาย, GameManager รู้ว่าผู้เล่นตาย
+    // ตายแล้วบอกคนอื่น
     public event Action<Character> OnDied;
-    // ส่ง (เลือดตอนนี้, เลือดเต็ม) ให้ UI แถบเลือด
+    // เลือดเปลี่ยนแล้วบอก UI
     public event Action<float, float> OnHPChanged;
 
     protected virtual void Start()
@@ -46,7 +46,7 @@ public abstract class Character : MonoBehaviour
         CheckDead();
     }
 
-    // ให้คลาสลูกแจ้ง UI เมื่อเปลี่ยน maxHP เอง (event เรียกได้แค่ในคลาสที่ประกาศ)
+    // ให้ลูกเรียกได้ เพราะ event เรียกนอกคลาสไม่ได้
     protected void RaiseHPChanged()
     {
         OnHPChanged?.Invoke(currentHP, maxHP);

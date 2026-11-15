@@ -1,10 +1,10 @@
 using UnityEngine;
 
-// กล้องมุมเฉียงจากด้านบน ตามผู้เล่นแบบนุ่ม ๆ
+// กล้องตามผู้เล่น มุมเฉียง
 public class CameraFollow : MonoBehaviour
 {
     [SerializeField] private Transform target;
-    [SerializeField] private Vector3 offset = new Vector3(0f, 7f, -5.5f); // ใกล้พอเห็นท่าทาง แต่ยังเห็นรอบตัว
+    [SerializeField] private Vector3 offset = new Vector3(0f, 7f, -5.5f);
     [SerializeField] private float smoothTime = 0.15f;
 
     private Vector3 velocity;
@@ -20,7 +20,7 @@ public class CameraFollow : MonoBehaviour
         transform.LookAt(target);
     }
 
-    // LateUpdate ทำงานหลัง Player เดินเสร็จในเฟรมนั้น กล้องจะไม่สั่น
+    // ใช้ LateUpdate กล้องจะไม่สั่น
     private void LateUpdate()
     {
         if (target == null) return;

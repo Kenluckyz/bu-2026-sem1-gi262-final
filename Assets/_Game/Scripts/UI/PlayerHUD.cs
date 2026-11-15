@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// แถบเลือด แถบ EXP และเลเวลของผู้เล่น — อัปเดตเมื่อมี event เท่านั้น ไม่เช็กทุกเฟรม
+// แถบเลือด exp เลเวล อัปเดตตอนมี event
 public class PlayerHUD : MonoBehaviour
 {
     [SerializeField] private Player player;
-    [SerializeField] private Image hpFill;   // Image Type = Filled
+    [SerializeField] private Image hpFill; // Filled
     [SerializeField] private Image expFill;
     [SerializeField] private Text hpText;
     [SerializeField] private Text levelText;
@@ -22,7 +22,6 @@ public class PlayerHUD : MonoBehaviour
         player.Stats.OnExpChanged += UpdateExp;
         player.Stats.OnLevelUp += UpdateLevel;
 
-        // ค่าเริ่มต้น
         UpdateHP(player.CurrentHP, player.MaxHP);
         UpdateExp(player.Stats.Exp, player.Stats.ExpToNextLevel);
         UpdateLevel(player.Stats.Level);
@@ -49,6 +48,6 @@ public class PlayerHUD : MonoBehaviour
 
     private void UpdateLevel(int level)
     {
-        if (levelText != null) levelText.text = level.ToString(); // ตัวเลขอยู่ในเหรียญเลเวล
+        if (levelText != null) levelText.text = level.ToString();
     }
 }
