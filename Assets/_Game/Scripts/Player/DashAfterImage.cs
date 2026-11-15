@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// เงาร่างตัวเอง (afterimage) ตอนกด Shift หลบ: ถ่ายท่าปัจจุบันของโมเดลเป็น mesh นิ่ง ๆ แล้วค่อย ๆ จางหาย
-// ใช้ Queue เก็บเงาที่จางหมดแล้วไว้ใช้ซ้ำ (Object Pool แบบ VFXManager) ไม่ต้องสร้าง/ลบทุกครั้ง
+// เงาร่างตอนหลบ ถ่ายท่าตอนนั้นเป็น mesh แล้วค่อยๆ จาง
+// ใช้ Queue เก็บเงาไว้ใช้ซ้ำ
 public class DashAfterImage : MonoBehaviour
 {
     private static Queue<DashAfterImage> pool = new Queue<DashAfterImage>();
@@ -14,7 +14,7 @@ public class DashAfterImage : MonoBehaviour
     private float lifeTime;
     private float timer;
 
-    // ถ่ายเงา 1 ร่างจากทุก SkinnedMeshRenderer ใต้ source
+    // ถ่ายเงา 1 อัน
     public static void Spawn(Transform source, Color tint, float life)
     {
         SkinnedMeshRenderer[] skins = source.GetComponentsInChildren<SkinnedMeshRenderer>(true);
@@ -25,7 +25,7 @@ public class DashAfterImage : MonoBehaviour
         }
 
         DashAfterImage ghost = null;
-        while (ghost == null && pool.Count > 0) ghost = pool.Dequeue(); // ข้ามตัวที่หายไปตอนโหลดซีนใหม่
+        while (ghost == null && pool.Count > 0) ghost = pool.Dequeue(); // ข้ามตัวที่หายไปตอนเปลี่ยนฉาก
         if (ghost == null) ghost = Create();
         ghost.gameObject.SetActive(true);
         ghost.Bake(skins);
@@ -48,7 +48,7 @@ public class DashAfterImage : MonoBehaviour
         return ghost;
     }
 
-    // วัสดุโปร่งใสไม่รับแสง: ใช้ URP Unlit ตั้งเป็น Transparent (ถ้าไม่มีใช้ Sprites/Default แทน)
+    // material โปร่งใส
     private static Material CreateGhostMaterial()
     {
         Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
@@ -57,8 +57,8 @@ public class DashAfterImage : MonoBehaviour
             return new Material(Shader.Find("Sprites/Default"));
         }
         Material mat = new Material(shader);
-        mat.SetFloat("_Surface", 1f);                 // 1 = Transparent
-        mat.SetFloat("_Blend", 0f);                   // Alpha blend
+        mat.SetFloat("_Surface", 1f);
+        mat.SetFloat("_Blend", 0f);
         mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
         mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
         mat.SetFloat("_ZWrite", 0f);
@@ -70,7 +70,7 @@ public class DashAfterImage : MonoBehaviour
 
     private void Bake(SkinnedMeshRenderer[] skins)
     {
-        // เพิ่มชิ้นให้พอกับจำนวนชิ้นของโมเดล
+        // ชิ้นไม่พอก็เพิ่ม
         while (parts.Count < skins.Length)
         {
             GameObject part = new GameObject("Part", typeof(MeshFilter), typeof(MeshRenderer));
@@ -87,10 +87,10 @@ public class DashAfterImage : MonoBehaviour
             bool used = i < skins.Length;
             parts[i].gameObject.SetActive(used);
             if (!used) continue;
-            skins[i].BakeMesh(parts[i].sharedMesh, false); // false: ไม่คูณ scale ซ้ำ (โมเดล FBX scale 0.01 คูณแล้วเงาเล็กจิ๋ว)
-            parts[i].sharedMesh.RecalculateBounds();      // ไม่คำนวณกรอบใหม่ = กรอบขนาด 0 กล้องตัดทิ้ง มองไม่เห็น
+            skins[i].BakeMesh(parts[i].sharedMesh, false); // false ไม่งั้น scale ซ้ำ เงาเล็กมาก
+            parts[i].sharedMesh.RecalculateBounds(); // ไม่ทำแล้วมองไม่เห็น
             parts[i].transform.SetPositionAndRotation(skins[i].transform.position, skins[i].transform.rotation);
-            parts[i].transform.localScale = Vector3.one; // BakeMesh(false) ได้ขนาดจริงอยู่แล้ว
+            parts[i].transform.localScale = Vector3.one;
         }
     }
 
@@ -101,7 +101,7 @@ public class DashAfterImage : MonoBehaviour
         if (t >= 1f)
         {
             gameObject.SetActive(false);
-            pool.Enqueue(this); // จางหมดแล้ว เก็บไว้ใช้รอบหน้า
+            pool.Enqueue(this); // จางหมดแล้วเก็บเข้าคิว
             return;
         }
         ApplyColor(color.a * (1f - t));
@@ -110,8 +110,8 @@ public class DashAfterImage : MonoBehaviour
     private void ApplyColor(float alpha)
     {
         Color c = new Color(color.r, color.g, color.b, alpha);
-        block.SetColor("_BaseColor", c);      // URP Unlit
-        block.SetColor("_Color", c);          // Sprites/Default
+        block.SetColor("_BaseColor", c);
+        block.SetColor("_Color", c);
         block.SetColor("_RendererColor", Color.white);
         for (int i = 0; i < parts.Count; i++)
         {

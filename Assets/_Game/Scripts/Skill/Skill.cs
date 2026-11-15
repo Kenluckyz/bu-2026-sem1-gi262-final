@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// คลาสแม่ของสกิล — คลาสธรรมดา (ไม่ใช่ MonoBehaviour) แบบ Skill ใน week08
+// คลาสแม่ของสกิล ไม่ใช่ MonoBehaviour
 public abstract class Skill
 {
     protected SkillData data;
@@ -17,7 +17,7 @@ public abstract class Skill
         level = 1;
     }
 
-    // ค่าตามเลเวล: เลเวล 1 = baseValue, เลเวลถัดไป + valuePerLevel
+    // เลเวล 1 = baseValue แล้วบวกเพิ่มทีละเลเวล
     public float Value()
     {
         return data.baseValue + data.valuePerLevel * (level - 1);
@@ -34,14 +34,14 @@ public abstract class Skill
         Debug.Log($"Skill {Name} level up -> {level}");
     }
 
-    // เรียกครั้งแรกตอนได้สกิล
+    // ตอนได้สกิล
     public virtual void OnAdded(Player player) { }
 
-    // เรียกทุกเฟรมจาก Player
+    // ทุกเฟรม
     public virtual void Tick(Player player) { }
 }
 
-// สกิลกดใช้ มี Cooldown
+// สกิลกดใช้ มีคูลดาวน์
 public abstract class ActiveSkill : Skill
 {
     private float lastUseTime = -999f;
@@ -51,7 +51,7 @@ public abstract class ActiveSkill : Skill
     public float CooldownRemaining => Mathf.Max(0f, data.cooldown - (Time.time - lastUseTime));
     public bool IsReady => CooldownRemaining <= 0f;
 
-    // คืน true ถ้าใช้สำเร็จ (Player จะเล่นท่าสกิล)
+    // ใช้ได้คืน true
     public bool TryActivate(Player player)
     {
         if (!IsReady)
@@ -60,36 +60,36 @@ public abstract class ActiveSkill : Skill
             return false;
         }
         lastUseTime = Time.time;
-        player.CastSkill(this); // Player เล่นท่า แล้วเรียก Execute ตอนถึงจังหวะ hitPoint
+        player.CastSkill(this); // ให้ player เล่นท่าก่อน ถึงจังหวะแล้วค่อยเรียก Execute
         return true;
     }
 
-    // จังหวะที่หมัด/เท้าลงจริง: ดาเมจ + เอฟเฟกต์
+    // ตอนหมัดโดน ดาเมจ + เอฟเฟกต์
     public void Execute(Player player)
     {
         Activate(player);
         PlayVFX(player);
     }
 
-    // ทุก ActiveSkill เล่นเอฟเฟกต์ของตัวเองจาก SkillData (ไม่ต้องเขียนซ้ำในคลาสลูก)
+    // เอฟเฟกต์เขียนไว้ที่เดียว ลูกไม่ต้องเขียนซ้ำ
     private void PlayVFX(Player player)
     {
         Transform t = player.transform;
         Vector3 position = t.position + t.forward * data.vfxForward + t.right * data.vfxSide + Vector3.up * data.vfxHeight;
-        // ออกจากมือ/เท้าที่ใช้ในท่าจริง ณ จังหวะ hitPoint
+        // ออกจากมือ/เท้า
         Transform bone = player.GetBone(data.vfxBone);
         if (bone != null) position = bone.position + t.forward * data.vfxForward;
-        // หันตามผู้เล่น -> หมุนซ้ายขวา (y) -> วางนอน/ตั้ง (x)
+        // หมุนตามตัวผู้เล่น
         Vector3 r = data.vfxRotation;
         Quaternion rotation = t.rotation * Quaternion.Euler(0f, r.y, 0f) * Quaternion.Euler(r.x, 0f, r.z);
         VFXManager.Play(data.vfxPrefab, position, rotation, data.vfxScale, data.vfxTime, data.vfxFollow ? t : null);
     }
 
-    // แต่ละสกิลเขียนผลเอง
+    // ลูกเขียนเอง
     protected abstract void Activate(Player player);
 }
 
-// สกิลติดตัว ทำงานเองตอนได้ และตอนเลเวลอัป
+// สกิลติดตัว
 public abstract class PassiveSkill : Skill
 {
     protected PassiveSkill(SkillData data) : base(data) { }
@@ -104,7 +104,7 @@ public abstract class PassiveSkill : Skill
         if (IsMaxLevel) return;
         float before = Value();
         base.LevelUp(player);
-        // ใส่เฉพาะส่วนที่เพิ่ม จะได้ไม่บวกทบซ้ำ
+        // บวกแค่ส่วนที่เพิ่ม ไม่งั้นบวกซ้ำ
         Apply(player, Value() - before);
     }
 

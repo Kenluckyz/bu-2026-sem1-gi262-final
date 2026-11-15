@@ -1,17 +1,17 @@
 using UnityEngine;
 
-// เอฟเฟกต์ท่าของบอส Orc + cutscene ตอนบอสเกิด — ไม่แก้ OrcBoss.cs ของเพื่อน
-// ดูว่าบอสกำลังเล่นท่าไหน (Animator) แล้วเล่นเอฟเฟกต์ตอนท่าถึงจังหวะเดียวกับที่ OrcBoss ใช้ทำดาเมจ
-//   Attack3 (กระโดดจาม) ถึง jumpHitPoint -> หลุมระเบิด ตรงหัวขวาน
-//   Attack1 (สับพื้น)   ถึง slamHitPoint -> หอกผุดทะลวงวง รอบวงดาเมจ
+// เอฟเฟกต์ท่าบอส ไม่แก้ OrcBoss ของเพื่อน
+// ดูว่าบอสเล่นท่าไหน ถึงจังหวะดาเมจก็เล่นเอฟเฟกต์
+// Attack3 กระโดดจาม = หลุมระเบิด
+// Attack1 สับพื้น = หอกผุดรอบตัว
 public class BossSkillVFX : MonoBehaviour
 {
     [Header("เอฟเฟกต์ (ตั้งให้อัตโนมัติจากเมนู)")]
-    [SerializeField] private GameObject craterBlast;   // VFX/BossCraterBlast/BossCraterBlast.prefab (3D แบบสกิลของ Boat)
-    [SerializeField] private GameObject spearRing;     // VFX/BossSpearRing/BossSpearRing.prefab
-    [SerializeField] private float craterScale = 1.8f;   // ขยายจากขนาดใน Lab ปรับให้พอดีวงดาเมจ
+    [SerializeField] private GameObject craterBlast;
+    [SerializeField] private GameObject spearRing;
+    [SerializeField] private float craterScale = 1.8f; // ปรับให้พอดีวงดาเมจ
     [SerializeField] private float spearRingScale = 2.2f;
-    [SerializeField] private float groundLift = 0.2f;    // ยกพ้นแผ่นพื้น ไม่จมดิน
+    [SerializeField] private float groundLift = 0.2f; // ยกพ้นพื้น
 
     private OrcBoss boss;
     private Animator bossAnimator;
@@ -19,8 +19,8 @@ public class BossSkillVFX : MonoBehaviour
     private float lastNormalized;
     private float searchTimer;
 
-    // เตรียมเอฟเฟกต์ไว้ตั้งแต่โหลดฉาก (สร้าง mesh + โหลด shader) วิธีเดียวกับตอน Boat ได้สกิล
-    // ถ้ารอทำตอนบอสเกิด จะกระตุกก่อน cutscene / ตอนบอสใช้สกิลครั้งแรก
+    // โหลดเอฟเฟกต์ไว้ก่อนเหมือนตอน Boat ได้สกิล
+    // ไม่งั้นกระตุกตอนบอสใช้สกิลแรก
     private void Start()
     {
         Camera cam = Camera.main;
@@ -33,7 +33,7 @@ public class BossSkillVFX : MonoBehaviour
     {
         if (boss == null)
         {
-            // บอสเกิดทีหลัง (ตอนเข้าห้องบอส) หาทุก 0.25 วิ
+            // บอสเกิดทีหลัง หาทุก 0.25 วิ
             searchTimer -= Time.unscaledDeltaTime;
             if (searchTimer > 0f) return;
             searchTimer = 0.25f;
@@ -49,13 +49,13 @@ public class BossSkillVFX : MonoBehaviour
         float t = info.normalizedTime % 1f;
         if (info.fullPathHash != lastStateHash)
         {
-            lastStateHash = info.fullPathHash; // เข้าท่าใหม่ เริ่มนับจังหวะใหม่
+            lastStateHash = info.fullPathHash; // ท่าใหม่ นับใหม่
             lastNormalized = 0f;
         }
 
         if (info.IsName("Attack3") && Crossed(boss.jumpHitPoint, t))
         {
-            // หัวขวานลงข้างหน้าบอส
+            // ตรงหัวขวาน
             Vector3 pos = boss.transform.position + boss.transform.forward * 2f * boss.transform.localScale.x;
             PlayVFX(craterBlast, pos, craterScale);
         }
@@ -67,13 +67,13 @@ public class BossSkillVFX : MonoBehaviour
         lastNormalized = t;
     }
 
-    // จังหวะท่าเพิ่งผ่านจุด point ในเฟรมนี้
+    // ท่าเพิ่งผ่านจุดนี้ในเฟรมนี้
     private bool Crossed(float point, float now)
     {
         return lastNormalized < point && now >= point;
     }
 
-    // ใช้ VFXManager เดียวกับสกิลของ Boat (Object Pool) หันตามบอส เล่นตามความยาวจริงของเอฟเฟกต์
+    // ใช้ VFXManager ตัวเดียวกับของ Boat
     private void PlayVFX(GameObject prefab, Vector3 position, float scale)
     {
         Vector3 ground = new Vector3(position.x, boss.transform.position.y + groundLift, position.z);

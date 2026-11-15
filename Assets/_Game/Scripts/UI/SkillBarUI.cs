@@ -1,15 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// แถบสกิลด้านล่าง 3 ช่อง ตามปุ่ม 1 / 2 / 3
+// แถบสกิล 3 ช่อง ปุ่ม 1 2 3
 public class SkillBarUI : MonoBehaviour
 {
     [System.Serializable]
     public class SlotUI
     {
         public Image icon;
-        public Text nameText;      // ใช้แทนไอคอนตอนยังไม่มีรูป
-        public Image cooldownMask; // Image Type = Filled, Radial 360
+        public Text nameText; // ไม่มีรูปใช้ชื่อแทน
+        public Image cooldownMask; // Filled Radial 360
         public Text cooldownText;
         public Text levelText;
     }
@@ -33,7 +33,7 @@ public class SkillBarUI : MonoBehaviour
         if (player != null) player.OnSkillsChanged -= Refresh;
     }
 
-    // Cooldown เปลี่ยนทุกเฟรม เลยต้องอัปเดตใน Update (ส่วนชื่อ/ไอคอนอัปเดตผ่าน event)
+    // คูลดาวน์เปลี่ยนตลอดเลยอัปเดตใน Update
     private void Update()
     {
         if (player == null) return;

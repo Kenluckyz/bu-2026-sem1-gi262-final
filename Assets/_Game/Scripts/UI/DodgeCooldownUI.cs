@@ -1,17 +1,17 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// ช่องคูลดาวน์ของ Shift หลบ อยู่ข้างแถบสกิล — หน้าตาเดียวกับช่องสกิล (วงกลม + วงแหวน + เงาหมุนตามเวลา)
-// สร้าง UI ด้วยโค้ดตอนเริ่มเกม ใส่ลงใต้ Canvas "HUD" เดิม ไม่ต้องแก้ HUD
+// ช่องคูลดาวน์ Shift หน้าตาเหมือนช่องสกิล
+// สร้างด้วยโค้ดใส่ใน HUD
 public class DodgeCooldownUI : MonoBehaviour
 {
     [SerializeField] private Player player;
-    [SerializeField] private Sprite slotBackground; // circle_slot
-    [SerializeField] private Sprite slotRing;       // skill_slot_ring
-    [SerializeField] private Sprite maskSprite;     // circle_white
-    [SerializeField] private Vector2 position = new Vector2(250f, 54f); // จากกลางล่างจอ (ถัดจากช่อง 3)
+    [SerializeField] private Sprite slotBackground;
+    [SerializeField] private Sprite slotRing;
+    [SerializeField] private Sprite maskSprite;
+    [SerializeField] private Vector2 position = new Vector2(250f, 54f); // ถัดจากช่อง 3
     [SerializeField] private float size = 96f;
-    [SerializeField] private bool showSlotOnScreen = false; // ติ๊กถ้าอยากให้วงคูลดาวน์ Shift กลับมา
+    [SerializeField] private bool showSlotOnScreen = false; // ติ๊กถ้าจะโชว์วง
     private bool showSlot => showSlotOnScreen;
 
     private Image mask;
@@ -28,7 +28,7 @@ public class DodgeCooldownUI : MonoBehaviour
             Debug.LogWarning("DodgeCooldownUI: ไม่พบ Player หรือ Canvas HUD");
             return;
         }
-        if (showSlot) Build(hud.transform); // ปิดไว้: ผู้ใช้ไม่อยากให้มีวง Shift บนจอ เหลือแค่ป้ายมุมซ้ายล่าง
+        if (showSlot) Build(hud.transform); // ตอนนี้ปิดไว้ เหลือแค่ป้ายมุมซ้าย
     }
 
     private void Update()
@@ -38,10 +38,10 @@ public class DodgeCooldownUI : MonoBehaviour
         float remaining = player.DodgeCooldownRemaining;
         mask.fillAmount = player.DodgeCooldown > 0f ? remaining / player.DodgeCooldown : 0f;
         cooldownText.text = remaining > 0f ? remaining.ToString("0.0") : "";
-        label.enabled = remaining <= 0f; // พร้อมกด = โชว์คำว่า DODGE
+        label.enabled = remaining <= 0f; // พร้อมกดโชว์ DODGE
     }
 
-    // เติม "Shift Dash" ต่อท้ายป้ายปุ่มมุมซ้ายล่างของ GameplayHUD (ไม่แก้สคริปต์เพื่อน แค่หา Text แล้วต่อข้อความ)
+    // ต่อคำว่า Shift Dash ที่ป้ายมุมซ้ายล่าง ไม่ได้แก้สคริปต์เพื่อน
     private void AddControlHint()
     {
         Text[] texts = FindObjectsByType<Text>(FindObjectsSortMode.None);
