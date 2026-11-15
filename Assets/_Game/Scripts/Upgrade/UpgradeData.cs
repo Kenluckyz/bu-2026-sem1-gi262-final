@@ -2,26 +2,26 @@ using UnityEngine;
 
 public enum UpgradeType { Stat, Skill }
 
-// ตัวเลือกอัปเกรด 1 ใบ เก็บเป็นไฟล์ .asset (ScriptableObject แบบ SkillData / ItemData ในคลาส)
-// Stat = เพิ่มค่าสถานะ, Skill = ได้สกิลใหม่หรืออัปเลเวลสกิล
+// การ์ดอัปเกรด 1 ใบ เก็บเป็นไฟล์เหมือน SkillData
+// Stat = เพิ่มค่า, Skill = ได้สกิล/อัปสกิล
 [CreateAssetMenu(fileName = "UpgradeData", menuName = "BoatVsBoss/Upgrade Data")]
 public class UpgradeData : ScriptableObject
 {
-    public string upgradeName;           // เว้นว่างได้ถ้าเป็น Skill จะใช้ชื่อสกิลแทน
+    public string upgradeName; // ว่างได้ ถ้าเป็นสกิลใช้ชื่อสกิล
     [TextArea] public string description;
-    public Sprite icon;                  // เว้นว่างได้ถ้าเป็น Skill จะใช้ไอคอนสกิลแทน
+    public Sprite icon; // ว่างได้ ใช้ไอคอนสกิล
     public UpgradeType type;
-    public Color cardColor = new Color(0.3f, 0.55f, 1f); // สีผ้าธงบนการ์ด
+    public Color cardColor = new Color(0.3f, 0.55f, 1f); // สีธง
 
     [Header("Stat")]
     public StatType statType;
     public float value = 10f;
-    public bool isPercent;               // true = value เป็นสัดส่วน (0.1 = 10%)
+    public bool isPercent; // 0.1 = 10%
 
     [Header("Skill")]
     public SkillData skill;
 
-    // ใช้เป็น key ใน Dictionary ของ UpgradeManager
+    // key ของ Dictionary
     public string Key => name;
 
     public string DisplayName

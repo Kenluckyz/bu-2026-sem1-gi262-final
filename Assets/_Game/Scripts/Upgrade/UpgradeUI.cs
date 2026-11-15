@@ -5,8 +5,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-// หน้าเลือกอัปเกรด 3 ใบ เปิดตอนเลเวลอัป หยุดเกมไว้จนกว่าจะเลือก
-// สร้าง UI ด้วยโค้ดตอนเริ่มเกม (แบบ GameplayHUD) ไม่ต้องลากต่อชิ้นเอง
+// หน้าเลือกการ์ด 3 ใบ ตอนเลเวลอัป หยุดเกมไว้
+// สร้าง UI ด้วยโค้ด แบบ GameplayHUD
 public class UpgradeUI : MonoBehaviour
 {
     [SerializeField] private Player player;
@@ -14,19 +14,19 @@ public class UpgradeUI : MonoBehaviour
     [SerializeField] private int optionCount = 3;
 
     [Header("รูป (ตั้งให้อัตโนมัติจากเมนู)")]
-    [SerializeField] private Sprite iconBackground; // circle_slot
-    [SerializeField] private Sprite iconRing;       // skill_slot_ring
-    [SerializeField] private Sprite bannerCloth;    // upgrade_banner_cloth (ผ้าสีขาว ย้อมสีตามสกิล)
-    [SerializeField] private Sprite bannerTrim;     // upgrade_banner_trim (ขอบทอง ไม้แขวน)
-    [SerializeField] private Sprite bannerGlow;     // upgrade_banner_glow (เงาเรืองแสงตอนชี้)
+    [SerializeField] private Sprite iconBackground;
+    [SerializeField] private Sprite iconRing;
+    [SerializeField] private Sprite bannerCloth; // ผ้าขาว ย้อมสีทีหลัง
+    [SerializeField] private Sprite bannerTrim; // ขอบทอง
+    [SerializeField] private Sprite bannerGlow; // เงาเรืองตอนชี้
 
-    // สีโทนไม้ให้เข้ากับ HUD ของ Boat
+    // สีไม้ ให้เข้ากับ HUD
     private static readonly Color WoodDark = new Color(0.24f, 0.14f, 0.07f, 0.97f);
     private static readonly Color WoodLight = new Color(0.47f, 0.29f, 0.14f, 1f);
     private static readonly Color Gold = new Color(1f, 0.85f, 0.4f);
     private static readonly Color Cream = new Color(1f, 0.95f, 0.85f);
 
-    // เลเวลอัปที่ยังไม่ได้เลือก (Queue แบบ ActionHistoryManager week09) — ขึ้นหลายเลเวลทีเดียวก็ได้เลือกครบ
+    // คิวเลเวลอัป อัปหลายเลเวลก็ได้เลือกครบ (Queue)
     private Queue<int> pendingLevelUps = new Queue<int>();
     private List<UpgradeData> currentOptions = new List<UpgradeData>();
     private bool isOpen;
@@ -61,7 +61,7 @@ public class UpgradeUI : MonoBehaviour
             Debug.LogWarning("UpgradeUI: ไม่พบ Player หรือ UpgradeManager");
             return;
         }
-        // ฟอนต์ไทยของ Windows (Leelawadee UI) อ่านง่ายกว่า Arial ที่ต่อภาษาไทยแบบเบียด ๆ
+        // ฟอนต์ไทย Leelawadee อ่านง่ายกว่า Arial
         font = Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Leelawadee", "Tahoma" }, 32);
         if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         EnsureEventSystem();
@@ -75,7 +75,7 @@ public class UpgradeUI : MonoBehaviour
         if (player != null) player.Stats.OnLevelUp -= HandleLevelUp;
     }
 
-    // ฆ่าบอสแล้ว (Victory) หรือตาย (GameOver) = เกมจบ ไม่ต้องเลือกอัปเกรดแล้ว ไม่งั้นทับหน้า Victory
+    // เกมจบแล้วไม่ต้องเปิด ไม่งั้นทับหน้า Victory
     private bool IsGameOver()
     {
         GameManager gm = GameManager.Instance;
@@ -91,7 +91,7 @@ public class UpgradeUI : MonoBehaviour
 
     private void Update()
     {
-        // เปิดผู้เล่นคืนเฟรมถัดไป กันคลิก/ปุ่ม 1-3 ที่ใช้เลือกการ์ดไปต่อยหรือกดสกิลด้วย
+        // เปิด player เฟรมหน้า ไม่งั้นคลิกเลือกการ์ดไปต่อยด้วย
         if (enablePlayerNextFrame)
         {
             enablePlayerNextFrame = false;
@@ -105,7 +105,7 @@ public class UpgradeUI : MonoBehaviour
             return;
         }
 
-        Time.timeScale = 0f; // กันปุ่ม Pause ปลดหยุดเกมระหว่างเลือก
+        Time.timeScale = 0f; // กันปุ่ม pause
 
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null) return;
@@ -126,7 +126,7 @@ public class UpgradeUI : MonoBehaviour
         currentOptions = upgradeManager.GetOptions(player, optionCount);
         if (currentOptions.Count == 0)
         {
-            ShowNext(); // ไม่มีอะไรให้เลือกแล้ว ข้ามไป
+            ShowNext(); // ไม่มีให้เลือกก็ข้าม
             return;
         }
 
@@ -134,7 +134,7 @@ public class UpgradeUI : MonoBehaviour
         {
             isOpen = true;
             previousTimeScale = Time.timeScale > 0f ? Time.timeScale : 1f;
-            player.enabled = false; // หยุดรับปุ่มของผู้เล่นระหว่างเลือก
+            player.enabled = false; // ปิดปุ่ม player ตอนเลือก
         }
         Time.timeScale = 0f;
         titleText.text = "LEVEL UP!  Lv." + level;
@@ -148,7 +148,7 @@ public class UpgradeUI : MonoBehaviour
         panel.SetActive(true);
         for (int i = 0; i < cards.Count; i++)
         {
-            if (cards[i].root.activeSelf) cards[i].motion.PlayIntro(i * 0.08f); // ธงเลื่อนลงมาทีละผืน
+            if (cards[i].root.activeSelf) cards[i].motion.PlayIntro(i * 0.08f); // ธงลงทีละผืน
         }
     }
 
@@ -178,7 +178,7 @@ public class UpgradeUI : MonoBehaviour
         }
     }
 
-    // ★ = เลเวลที่มีแล้ว, ☆ ตัวแรก = เลเวลที่จะได้ (เช่น Lv.2 -> 3 = ★★☆)
+    // ดาวเต็ม = เลเวลที่มี ดาวว่างแรก = เลเวลที่จะได้
     private string Stars(int level, int maxLevel)
     {
         string text = "Lv." + level + " > " + (level + 1) + System.Environment.NewLine;
@@ -189,7 +189,7 @@ public class UpgradeUI : MonoBehaviour
         return text;
     }
 
-    // บอกว่าเลือกแล้วแรงขึ้นเท่าไร: ค่าตามเลเวลแบบ Skill.Value() = baseValue + valuePerLevel * (level - 1)
+    // บอกว่าเลือกแล้วแรงขึ้นเท่าไร คิดแบบ Skill.Value()
     private string SkillStatLine(SkillData skill, int level)
     {
         string label = skill.kind == SkillKind.Passive ? "โบนัส" : "ดาเมจ";
@@ -215,7 +215,7 @@ public class UpgradeUI : MonoBehaviour
     {
         if (!isOpen || index >= currentOptions.Count) return;
         upgradeManager.ApplyUpgrade(currentOptions[index], player);
-        ShowNext(); // ยังมีเลเวลค้างในคิว เลือกต่อ
+        ShowNext(); // ยังมีในคิว เลือกต่อ
     }
 
     private void Close()
@@ -240,17 +240,17 @@ public class UpgradeUI : MonoBehaviour
         canvasObj.transform.SetParent(transform, false);
         Canvas canvas = canvasObj.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 50; // อยู่บนสุด ทับ HUD
+        canvas.sortingOrder = 50; // อยู่บนสุด
         CanvasScaler scaler = canvasObj.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 0.5f;
 
-        // พื้นมืดเต็มจอ
+        // พื้นมืด
         panel = new GameObject("UpgradePanel", typeof(RectTransform), typeof(Image));
         panel.transform.SetParent(canvasObj.transform, false);
         Stretch(panel.GetComponent<RectTransform>());
-        panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.85f); // พื้นหลังมืด ให้การ์ดเด่น
+        panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.85f);
 
         titleText = MakeText(panel.transform, "Title", 64, Gold, new Vector2(0f, 420f), new Vector2(1200f, 100f));
         titleText.gameObject.AddComponent<Outline>().effectColor = WoodDark;
@@ -264,11 +264,11 @@ public class UpgradeUI : MonoBehaviour
         }
     }
 
-    // การ์ด = ธงแขวน: เงาเรือง (ชี้แล้วโผล่) -> ผ้าย้อมสี -> ขอบทอง -> ไอคอน -> ตัวหนังสือ
+    // การ์ด: เงา > ผ้า > ขอบ > ไอคอน > ตัวหนังสือ
     private Card BuildCard(Transform parent, int index, Vector2 pos)
     {
         Card card = new Card();
-        Vector2 size = new Vector2(344f, 640f); // สัดส่วนเดียวกับรูปธง (519 x 967)
+        Vector2 size = new Vector2(344f, 640f); // สัดส่วนเท่ารูปธง
         GameObject root = new GameObject("Card" + (index + 1), typeof(RectTransform), typeof(Image), typeof(Button));
         root.transform.SetParent(parent, false);
         RectTransform rt = root.GetComponent<RectTransform>();
@@ -276,11 +276,11 @@ public class UpgradeUI : MonoBehaviour
         rt.anchoredPosition = pos;
         Image hit = root.GetComponent<Image>();
         hit.sprite = bannerGlow;
-        hit.color = new Color(1f, 1f, 1f, 0f); // มองไม่เห็น แต่ใช้รับคลิกตามรูปธง
+        hit.color = new Color(1f, 1f, 1f, 0f); // ใสแต่กดได้
 
 
         Button button = root.GetComponent<Button>();
-        button.transition = Selectable.Transition.None; // เด้ง/เรืองแสงทำเองใน UpgradeCardMotion
+        button.transition = Selectable.Transition.None; // เด้งเองใน UpgradeCardMotion
         int captured = index;
         button.onClick.AddListener(() => Pick(captured));
 
@@ -288,7 +288,7 @@ public class UpgradeUI : MonoBehaviour
         card.cloth = MakeImage(root.transform, "Cloth", bannerCloth, Vector2.zero, size);
         MakeImage(root.transform, "Trim", bannerTrim, Vector2.zero, size);
 
-        // ไอคอนวงกลมทับกรอบข้าวหลามตัดบนไม้แขวน
+        // ไอคอนวงกลมบนไม้แขวน
         Vector2 iconPos = new Vector2(0f, 262f);
         Image bg = MakeImage(root.transform, "IconBG", iconBackground, iconPos, new Vector2(150f, 150f));
         bg.color = new Color(0.15f, 0.1f, 0.06f);
@@ -301,7 +301,7 @@ public class UpgradeUI : MonoBehaviour
         key.gameObject.AddComponent<Outline>().effectColor = WoodDark;
 
         card.nameText = MakeText(root.transform, "Name", 40, Color.white, new Vector2(0f, 135f), new Vector2(270f, 56f));
-        card.nameText.resizeTextForBestFit = true; // ชื่อยาว (FinalExecution) ย่อเองไม่ล้นธง
+        card.nameText.resizeTextForBestFit = true; // ชื่อยาวย่อเอง
         card.nameText.resizeTextMinSize = 22;
         card.nameText.resizeTextMaxSize = 40;
         card.nameText.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -342,7 +342,7 @@ public class UpgradeUI : MonoBehaviour
         img.sprite = sprite;
         img.preserveAspect = true;
         img.raycastTarget = false;
-        if (sprite == null) img.enabled = false; // ไม่มีรูปก็ซ่อน (Icon จะเปิดเองตอนใส่รูป)
+        if (sprite == null) img.enabled = false; // ไม่มีรูปก็ซ่อน
         return img;
     }
 

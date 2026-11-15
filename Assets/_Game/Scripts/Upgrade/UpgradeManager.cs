@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// สุ่มตัวเลือกอัปเกรดตอนเลเวลอัป แล้วใช้กับผู้เล่น (ตาม class diagram: pool, GetOptions, ApplyUpgrade)
+// สุ่มการ์ดตอนเลเวลอัป แล้วเอาไปใช้กับผู้เล่น
 public class UpgradeManager : MonoBehaviour
 {
-    [SerializeField] private List<UpgradeData> allUpgrades = new List<UpgradeData>(); // ลากไฟล์ .asset ใส่ใน Inspector
-    // ชื่อ -> อัปเกรด (Dictionary แบบ Inventory ใน week04)
+    [SerializeField] private List<UpgradeData> allUpgrades = new List<UpgradeData>(); // ลากการ์ดใส่
+    // Dictionary แบบ Inventory
     private Dictionary<string, UpgradeData> pool = new Dictionary<string, UpgradeData>();
 
     public int PoolCount => pool.Count;
@@ -20,7 +20,7 @@ public class UpgradeManager : MonoBehaviour
         BuildPool();
     }
 
-    // ใส่อัปเกรดทุกตัวลง Dictionary (ตัวซ้ำไม่ใส่ เหมือน AddItem เช็ก ContainsKey ก่อน)
+    // ใส่ทุกใบลง Dictionary ซ้ำไม่ใส่ (ContainsKey แบบ AddItem)
     public void BuildPool()
     {
         pool.Clear();
@@ -38,7 +38,7 @@ public class UpgradeManager : MonoBehaviour
         Debug.Log("Upgrade pool: " + pool.Count + " ตัว");
     }
 
-    // เลือกได้ไหม: Stat ได้เสมอ, Skill ต้องปลดล็อกแล้ว (Skill Tree) และยังไม่เต็มเลเวล
+    // Stat เลือกได้ตลอด Skill ต้องปลดล็อกแล้วและยังไม่ตัน
     public bool CanPick(UpgradeData upgrade, Player player)
     {
         if (upgrade.type == UpgradeType.Stat) return true;
@@ -47,7 +47,7 @@ public class UpgradeManager : MonoBehaviour
         return player.GetSkillLevel(upgrade.skill.skillName) < upgrade.skill.maxLevel;
     }
 
-    // สุ่มตัวเลือกไม่ซ้ำกัน count ใบ จากตัวที่เลือกได้
+    // สุ่มไม่ซ้ำ
     public List<UpgradeData> GetOptions(Player player, int count)
     {
         List<UpgradeData> candidates = new List<UpgradeData>();
@@ -61,7 +61,7 @@ public class UpgradeManager : MonoBehaviour
         {
             int index = Random.Range(0, candidates.Count);
             options.Add(candidates[index]);
-            candidates.RemoveAt(index); // หยิบแล้วเอาออก จะได้ไม่ซ้ำ
+            candidates.RemoveAt(index); // หยิบแล้วเอาออก
         }
         return options;
     }
@@ -75,7 +75,7 @@ public class UpgradeManager : MonoBehaviour
                 player.ApplyStatBoost(upgrade.statType, upgrade.value, upgrade.isPercent);
                 break;
             case UpgradeType.Skill:
-                player.AddSkill(upgrade.skill); // มีแล้ว = อัปเลเวล, ยังไม่มี = ได้สกิลใหม่ (อยู่ใน AddSkill)
+                player.AddSkill(upgrade.skill); // AddSkill จัดการเองว่าได้ใหม่หรืออัปเลเวล
                 break;
         }
         Debug.Log("เลือกอัปเกรด " + upgrade.DisplayName);

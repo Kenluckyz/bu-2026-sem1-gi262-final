@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-// ท่าทางของการ์ดอัปเกรด: เลื่อนลงมาตอนเปิด, ชี้แล้วเด้งขึ้น+เรืองแสง
-// ใช้ unscaledDeltaTime เพราะตอนเลือกการ์ดเกมหยุด (timeScale = 0)
+// การ์ดเลื่อนลงตอนเปิด ชี้แล้วเด้ง+เรือง
+// ใช้ unscaled เพราะเกมหยุดอยู่
 public class UpgradeCardMotion : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private float hoverLift = 24f;
@@ -14,7 +14,7 @@ public class UpgradeCardMotion : MonoBehaviour, IPointerEnterHandler, IPointerEx
     private UnityEngine.UI.Image glow;
     private Vector2 basePos;
     private bool hovered;
-    private float introTimer;   // ติดลบ = รอคิว (ผืนถัดไปมาช้ากว่า)
+    private float introTimer; // ติดลบ = รอคิว
     private float offsetY;
     private float glowAlpha;
 
