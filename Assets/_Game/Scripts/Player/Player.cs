@@ -68,6 +68,10 @@ public class Player : Character
     [SerializeField] private float afterImageLife = 0.25f;     // เงาจางหมดในกี่วินาที
     private bool isCasting; // กำลังเล่นท่าสกิล 2/3
 
+    [Header("Level Up")]
+    [Tooltip("เลเวลอัปแล้วเลือดสูงสุดเพิ่มกี่หน่วย (เลือดตอนนี้เพิ่มเท่ากัน)")]
+    [SerializeField] private float hpPerLevel = 25f;
+
     [Header("Hurt")]
     [SerializeField] private float invincibleTime = 0.6f; // หลังโดนตี อมตะสักพัก ไม่ให้โดนรัวจนตายทันที
     private float lastHurtTime = -99f;
@@ -93,6 +97,9 @@ public class Player : Character
         }
         attackAction = InputSystem.actions.FindAction("Attack"); // คลิกซ้าย
         stats.Refresh();
+        // เลเวลอัป -> เลือดเพิ่ม (ถอดก่อนใส่ กัน SetUP ซ้ำแล้วโดนเรียก 2 ครั้ง)
+        stats.OnLevelUp -= HandleLevelUp;
+        stats.OnLevelUp += HandleLevelUp;
 
         for (int i = 0; i < startingSkills.Count; i++)
         {
@@ -352,6 +359,13 @@ public class Player : Character
     }
 
     // เพิ่มค่าสถานะ — UpgradeManager เรียกตอนเลือก Stat Boost, PassiveSkill ก็เรียก
+    // ทุกครั้งที่เลเวลอัป: เลือดสูงสุด + เลือดตอนนี้ เพิ่ม hpPerLevel (ใช้ ApplyStatBoost แบบเดียวกับการ์ดอัปเกรด HP)
+    private void HandleLevelUp(int newLevel)
+    {
+        ApplyStatBoost(StatType.MaxHP, hpPerLevel, false);
+        Debug.Log("Level " + newLevel + " : เลือดสูงสุด +" + hpPerLevel + " = " + maxHP);
+    }
+
     public void ApplyStatBoost(StatType type, float value, bool isPercent)
     {
         switch (type)

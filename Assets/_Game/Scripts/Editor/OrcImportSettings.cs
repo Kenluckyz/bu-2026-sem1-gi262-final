@@ -15,6 +15,7 @@ public class OrcImportSettings : AssetPostprocessor
     public const string Death = PackFolder + "10_Orc_Warrior_Death.fbx";
     public const string Jump = Folder + "Orc_Jump.fbx";
     public const string Guard = PackFolder + "05_Orc_Warrior_Idle_Battle1.fbx"; // ตั้งโล่ = ท่าตั้งการ์ดของแพ็ก
+    public const string Summon = PackFolder + "06_Orc_Warrior_Idle_Battle2.fbx"; // เสกก็อบลิน = ย่อตัวแล้วกางแขนคำราม
 
     private static bool IsOrcAnim(string path)
     {
@@ -40,8 +41,9 @@ public class OrcImportSettings : AssetPostprocessor
         if (!IsOrcAnim(assetPath)) return;
 
         ModelImporter importer = (ModelImporter)assetImporter;
-        // วนลูป: ท่ายืน (Idle, Idle_Battle = ตั้งโล่), เดิน, วิ่ง
-        bool loop = assetPath.Contains("Idle") || assetPath.Contains("_Walk") || assetPath.Contains("_Run");
+        // วนลูป: ท่ายืน (Idle, Idle_Battle1 = ตั้งโล่), เดิน, วิ่ง
+        // ท่าเสก (Idle_Battle2) เล่นรอบเดียวจบ ไม่วน
+        bool loop = (assetPath.Contains("Idle") && !assetPath.Contains("Idle_Battle2")) || assetPath.Contains("_Walk") || assetPath.Contains("_Run");
         ModelImporterClipAnimation[] clips = importer.clipAnimations;
         // ไฟล์จาก Blender: ใช้ช่วงเฟรมเต็มของไฟล์ใหม่ทุกครั้ง
         // (ถ้าใช้ clipAnimations เดิม Unity จะจำช่วงเฟรมของไฟล์เก่าไว้ ท่าที่ยาวขึ้นจะโดนตัดท้ายทิ้ง)
@@ -56,7 +58,7 @@ public class OrcImportSettings : AssetPostprocessor
     // เรียกจาก EnemySceneBuilder: import ท่าที่ใช้ใหม่ให้ตั้งค่าข้างบนทำงาน
     public static void EnsureImported()
     {
-        string[] files = { Idle, Walk, Slam, Sweep, Hit, Death, Jump, Guard };
+        string[] files = { Idle, Walk, Slam, Sweep, Hit, Death, Jump, Guard, Summon };
         for (int i = 0; i < files.Length; i++)
         {
             AssetDatabase.ImportAsset(files[i], ImportAssetOptions.ForceUpdate);

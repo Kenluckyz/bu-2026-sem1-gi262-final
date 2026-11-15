@@ -14,10 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Orc Warlord
   prefab: {fileID: 3847201956785476319, guid: 30736fe8c52efc94eba68ac43a06b2f7, type: 3}
-  maxHP: 600
+  maxHP: 1500
   damage: 25
   expDrop: 200
   modelScale: 1.5
+  hpPerLevel: 0.15
+  damagePerLevel: 0.1
   moveSpeed: 2.4
   detectRange: 30
   attackRange: 4

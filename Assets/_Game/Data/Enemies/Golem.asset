@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Golem
   prefab: {fileID: 6695071254858561604, guid: 7449316fa142c5a4b98499ea77016d12, type: 3}
-  maxHP: 160
+  maxHP: 260
   damage: 18
   expDrop: 40
   modelScale: 1.4

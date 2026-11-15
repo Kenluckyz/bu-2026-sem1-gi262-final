@@ -1722,6 +1722,8 @@ MonoBehaviour:
   - {fileID: 1449226001}
   randomSpawnRadius: 6
   slotRefreshTime: 0.5
+  scaleWithPlayerLevel: 1
+  maxEnemyLevel: 20
 --- !u!4 &688995734
 Transform:
   m_ObjectHideFlags: 0
@@ -3577,6 +3579,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b6592a6e80c4b1145920c97e0eb27905, type: 2}
   dashSpeed: 12
   dashTime: 0.35
+  dodgeCooldownTime: 4
+  afterImageColor: {r: 0.45, g: 0.8, b: 1, a: 0.3}
+  afterImageInterval: 0.08
+  afterImageLife: 0.25
+  hpPerLevel: 25
   invincibleTime: 0.6
 --- !u!4 &1874902911
 Transform:

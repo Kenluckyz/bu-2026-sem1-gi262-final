@@ -7,6 +7,8 @@ using UnityEngine;
 // สกิล 2 ตั้งโล่    (Attack4 = ท่า Idle_Battle1 ของแพ็ก ยกโล่บังหน้า) : ตีด้านหน้าไม่เข้า ต้องอ้อมไปตีด้านหลัง (บอสหันตามช้า ๆ)
 // สกิล 3 เหวี่ยงขวาน (Attack2) : AoE รูปพัดด้านหน้า
 // สกิล 4 สับพื้น    (Attack1) : AoE วงกลมรอบตัว
+// สกิล 5 เสกก็อบลิน (Attack5 = ท่า Idle_Battle2 ของแพ็ก ย่อตัวแล้วกางแขนคำราม) : ก็อบลิน 5 ตัวโผล่รอบตัวบอส
+//                    เสกใหม่ได้ก็ต่อเมื่อก็อบลินที่เสกไว้ตายหมดแล้วเท่านั้น
 // ทุกท่าโจมตีมีพื้นแดง (AttackIndicator) ขึ้นก่อน — สีแดงเข้มขยายเต็มวงเมื่อไร = โดนตอนนั้น
 public class OrcBoss : Enemy
 {
@@ -17,6 +19,7 @@ public class OrcBoss : Enemy
     public AnimationClip slamClip;
     public AnimationClip sweepClip;
     public AnimationClip jumpClip;
+    public AnimationClip summonClip;
     public Material indicatorMaterial;     // Material ของพื้นแดง (Sprites/Default)
     [Tooltip("ยืนง้างให้ผู้เล่นเห็นพื้นแดงก่อนเริ่มท่ากี่วินาที (มากขึ้น = หลบง่ายขึ้น)")]
     public float telegraphHold = 0.25f;
@@ -60,11 +63,28 @@ public class OrcBoss : Enemy
     public float slamCooldown = 5f;
     [Range(0f, 1f)] public float slamHitPoint = 0.72f;   // ขวานถึงพื้นเฟรม 22/30
 
+    [Header("สกิล 5 เสกก็อบลิน")]
+    [Tooltip("ศัตรูที่เสกออกมา (Goblin)")]
+    public EnemyData summonData;
+    public int summonCount = 5;
+    [Tooltip("ก็อบลินเกิดห่างจากบอสกี่เมตร (วงรอบตัว)")]
+    public float summonRadius = 3.5f;
+    [Tooltip("บอสเกิดแล้วรอกี่วินาทีก่อนเสกครั้งแรก")]
+    public float firstSummonDelay = 6f;
+    [Tooltip("ก็อบลินตายหมดแล้ว รออีกกี่วินาทีถึงเสกใหม่ได้")]
+    public float summonCooldown = 4f;
+    public float summonAnimSpeed = 0.7f;   // ท่าช้าลง ให้ผู้เล่นเห็นว่ากำลังเสก
+    [Range(0f, 1f)] public float summonCastPoint = 0.55f; // จังหวะกางแขนสุด = ก็อบลินโผล่
+
     private float lastJumpTime = -99f;
     private float lastGuardTime = -99f;
     private float lastSweepTime = -99f;
     private float lastSlamTime = -99f;
     private bool isGuarding;
+    // ก็อบลินที่เสกออกมาแล้วยังไม่ตาย (ตายแล้วลบออก) — ว่างเมื่อไหร่ถึงเสกใหม่ได้
+    private List<Enemy> minions = new List<Enemy>();
+    private float lastMinionDeathTime;
+    private float spawnTime;
     private bool inAir;
     private float groundY;
     // พื้นแดงที่กำลังแสดงอยู่ (ตายกลางท่าต้องลบทิ้งให้หมด)
@@ -82,9 +102,12 @@ public class OrcBoss : Enemy
         isGuarding = false;
         inAir = false;
         lastJumpTime = Time.time - jumpCooldown; // เกิดมาแล้วกระโดดเปิดตัวได้เลยถ้าผู้เล่นอยู่ไกล
+        spawnTime = Time.time;
+        lastMinionDeathTime = -99f;
+        minions.Clear();
         FindAxe();
         MeasureJumpAxeOffset();
-        Debug.Log("SetUP " + characterName + " (กระโดดจาม / ตั้งโล่ / เหวี่ยงขวาน / สับพื้น)");
+        Debug.Log("SetUP " + characterName + " (กระโดดจาม / ตั้งโล่ / เหวี่ยงขวาน / สับพื้น / เสกก็อบลิน)");
     }
 
     protected override void Update()
@@ -120,7 +143,14 @@ public class OrcBoss : Enemy
             return;
         }
 
-        // 3. ผู้เล่นอยู่ไกล + คูลดาวน์ครบ -> กระโดดจาม
+        // 3. ก็อบลินตายหมดแล้ว -> เสกชุดใหม่ (สำคัญกว่าท่าอื่น)
+        if (CanSummon())
+        {
+            StartSkill(SummonRoutine());
+            return;
+        }
+
+        // 4. ผู้เล่นอยู่ไกล + คูลดาวน์ครบ -> กระโดดจาม
         float distance = FlatDirectionToTarget().magnitude;
         bool jumpReady = Time.time - lastJumpTime >= jumpCooldown;
         if (jumpReady && distance >= jumpMinRange && distance <= jumpMaxRange)
@@ -129,7 +159,7 @@ public class OrcBoss : Enemy
             return;
         }
 
-        // 4. ปกติ: เดินเข้าหา ถึงระยะแล้ว Enemy เรียก Attack() ให้
+        // 5. ปกติ: เดินเข้าหา ถึงระยะแล้ว Enemy เรียก Attack() ให้
         base.Update();
     }
 
@@ -287,6 +317,85 @@ public class OrcBoss : Enemy
         EndSkill();
     }
 
+    // สกิล 5: เสกก็อบลินได้ไหม = มีข้อมูลก็อบลิน + เกิดมาครบเวลา + ก็อบลินชุดเก่าตายหมด + พักครบ
+    private bool CanSummon()
+    {
+        if (summonData == null || manager == null || summonCount <= 0) return false;
+        if (Time.time - spawnTime < firstSummonDelay) return false;
+        if (GetMinionCount() > 0) return false;
+        return Time.time - lastMinionDeathTime >= summonCooldown;
+    }
+
+    // นับก็อบลินที่ยังไม่ตาย (ลบตัวที่ตาย/หายไปแล้วออกจาก List ไปด้วย)
+    public int GetMinionCount()
+    {
+        for (int i = minions.Count - 1; i >= 0; i--)
+        {
+            if (minions[i] == null || !minions[i].IsAlive) minions.RemoveAt(i);
+        }
+        return minions.Count;
+    }
+
+    // สกิล 5: ย่อตัว -> กางแขนคำราม -> ก็อบลินโผล่รอบตัว (วงม่วงขึ้นก่อนตรงจุดที่จะโผล่)
+    private IEnumerator SummonRoutine()
+    {
+        float length = ClipLength(summonClip, summonAnimSpeed);
+        float castTime = length * summonCastPoint;
+
+        // 1. หาจุดเกิดรอบตัว (วนลูปแบ่งวงกลมเท่า ๆ กัน) + วงม่วงเตือน
+        List<Vector3> points = new List<Vector3>();
+        float startAngle = transform.eulerAngles.y;
+        for (int i = 0; i < summonCount; i++)
+        {
+            float angle = startAngle + 360f / summonCount * i;
+            Vector3 point = SummonPoint(angle);
+            points.Add(point);
+            ShowIndicator(point, Vector3.forward, 0.9f, 360f, telegraphHold + castTime, Wave.SpawnColor);
+        }
+        Debug.Log(characterName + " เสกก็อบลิน " + summonCount + " ตัว!");
+
+        // 2. ยืนเตรียม แล้วเล่นท่าคำราม
+        yield return new WaitForSeconds(telegraphHold);
+        PlayState("Attack5", summonAnimSpeed);
+        yield return new WaitForSeconds(castTime);
+
+        // 3. กางแขนสุด -> ก็อบลินโผล่ (ผ่าน EnemyManager เลยได้เลเวลตามผู้เล่นด้วย)
+        ClearIndicators();
+        for (int i = 0; i < points.Count && manager != null && summonData != null; i++)
+        {
+            Enemy goblin = manager.SpawnEnemy(summonData, points[i]);
+            if (goblin == null) continue;
+            goblin.huntPlayer = true;
+            goblin.OnDied += HandleMinionDied;
+            minions.Add(goblin);
+        }
+
+        yield return new WaitForSeconds(length * (1f - summonCastPoint) * 0.9f);
+        EndSkill();
+    }
+
+    // จุดเกิดที่มุม angle รอบตัวบอส — ถ้ามีกำแพงขวางก็ขยับเข้ามาใกล้บอสก่อนถึงกำแพง
+    private Vector3 SummonPoint(float angle)
+    {
+        Vector3 dir = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+        Vector3 from = GroundPosition() + Vector3.up;
+        float distance = summonRadius;
+        RaycastHit hit;
+        if (Physics.Raycast(from, dir, out hit, summonRadius, ~0, QueryTriggerInteraction.Ignore) && hit.collider != controller)
+        {
+            distance = Mathf.Max(hit.distance - 0.8f, 1.2f);
+        }
+        Vector3 point = GroundPosition() + dir * distance;
+        point.y = GroundY() + 0.1f;
+        return point;
+    }
+
+    private void HandleMinionDied(Character minion)
+    {
+        minion.OnDied -= HandleMinionDied;
+        lastMinionDeathTime = Time.time;
+    }
+
     // จะลงตรงไหน ถ้าอยากให้หัวขวานฟาดลงที่ spot (หันหน้าจากตำแหน่งตอนนี้ไปหา spot)
     private Vector3 LandPointFor(Vector3 spot)
     {
@@ -357,11 +466,7 @@ public class OrcBoss : Enemy
             inAir = false;
         }
         isGuarding = false;
-        for (int i = 0; i < indicators.Count; i++)
-        {
-            if (indicators[i] != null) Destroy(indicators[i].gameObject);
-        }
-        indicators.Clear();
+        ClearIndicators();
         if (animator != null) animator.SetFloat("AttackSpeed", data != null ? data.attackAnimSpeed : 1f);
         base.Die();
     }
@@ -378,6 +483,9 @@ public class OrcBoss : Enemy
 
     [ContextMenu("Test Skill/4 Slam")]
     private void TestSlam() { if (CanTest()) StartSkill(SlamRoutine()); }
+
+    [ContextMenu("Test Skill/5 Summon")]
+    private void TestSummon() { if (CanTest()) StartSkill(SummonRoutine()); }
 
     private bool CanTest()
     {
@@ -494,11 +602,27 @@ public class OrcBoss : Enemy
 
     private AttackIndicator ShowIndicator(Vector3 center, Vector3 forward, float radius, float angle, float duration)
     {
+        return ShowIndicator(center, forward, radius, angle, duration, AttackIndicator.Red);
+    }
+
+    // Overload: เลือกสีได้ (เสกก็อบลิน = วงม่วงแบบเดียวกับวงเกิดศัตรูของ Wave)
+    private AttackIndicator ShowIndicator(Vector3 center, Vector3 forward, float radius, float angle, float duration, Color color)
+    {
         if (indicatorMaterial == null) return null;
         Vector3 ground = new Vector3(center.x, GroundY(), center.z);
-        AttackIndicator indicator = AttackIndicator.Create(ground, forward, radius, angle, duration, indicatorMaterial);
+        AttackIndicator indicator = AttackIndicator.Create(ground, forward, radius, angle, duration, indicatorMaterial, color);
         indicators.Add(indicator);
         return indicator;
+    }
+
+    // ลบพื้นเตือนที่ค้างอยู่ทั้งหมด
+    private void ClearIndicators()
+    {
+        for (int i = 0; i < indicators.Count; i++)
+        {
+            if (indicators[i] != null) Destroy(indicators[i].gameObject);
+        }
+        indicators.Clear();
     }
 
     private void HideIndicator(AttackIndicator indicator)

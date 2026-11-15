@@ -77,6 +77,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
   owner: {fileID: 3940244368856440261}
   fill: {fileID: 7699753621796865593}
+  showName: 1
+  fontSize: 40
+  levelColor: {r: 1, g: 0.82, b: 0.29, a: 1}
+  nameColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2161511762396027227
 GameObject:
   m_ObjectHideFlags: 0
@@ -158,9 +162,14 @@ MonoBehaviour:
   gravity: -20
   hitTolerance: 0.4
   hitAngle: 75
+  surroundPlayer: 1
+  standRatio: 0.8
+  slotTolerance: 1
+  separationWeight: 1.5
+  huntPlayer: 0
   rockPrefab: {fileID: 3001935841957413263, guid: 74ec9456c12580e408958813eeb64070, type: 3}
   throwHand: {fileID: 1432653246110562121}
-  flightTime: 0.9
+  flightTime: 0.4
   arcHeight: 1.5
   fleeRange: 3.5
 --- !u!1 &3100359616525228283

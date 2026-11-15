@@ -564,10 +564,11 @@ public static class EnemySceneBuilder
         AnimationClip sweep = EnemyAnimatorBuilder.LoadFirstClip(OrcImportSettings.Sweep);
         AnimationClip jump = EnemyAnimatorBuilder.LoadFirstClip(OrcImportSettings.Jump);
         AnimationClip guard = EnemyAnimatorBuilder.LoadFirstClip(OrcImportSettings.Guard); // ท่ายืนตั้งการ์ดของแพ็ก (ยกโล่บังหน้า)
+        AnimationClip summon = EnemyAnimatorBuilder.LoadFirstClip(OrcImportSettings.Summon); // ย่อตัวแล้วกางแขนคำราม (เสกก็อบลิน)
         AnimatorController controller = EnemyAnimatorBuilder.Build(OrcController,
             EnemyAnimatorBuilder.LoadFirstClip(OrcImportSettings.Idle),        // ยืนปกติ (ไม่ยกโล่) จะได้ต่างจากท่าตั้งโล่
             EnemyAnimatorBuilder.LoadFirstClip(OrcImportSettings.Walk),
-            new[] { slam, sweep, jump, guard },      // Attack1 สับพื้น / Attack2 เหวี่ยง / Attack3 กระโดด / Attack4 ตั้งโล่
+            new[] { slam, sweep, jump, guard, summon }, // Attack1 สับพื้น / Attack2 เหวี่ยง / Attack3 กระโดด / Attack4 ตั้งโล่ / Attack5 เสก
             EnemyAnimatorBuilder.LoadFirstClip(OrcImportSettings.Hit),
             EnemyAnimatorBuilder.LoadFirstClip(OrcImportSettings.Death));
         // ตั้งโล่ค้างไว้จนกว่า OrcBoss จะสั่งเลิก -> เอาทางออกอัตโนมัติของ Attack4 ออก
@@ -626,6 +627,8 @@ public static class EnemySceneBuilder
         boss.slamClip = slam;
         boss.sweepClip = sweep;
         boss.jumpClip = jump;
+        boss.summonClip = summon;
+        boss.summonData = AssetDatabase.LoadAssetAtPath<EnemyData>("Assets/_Game/Data/Enemies/Goblin.asset");
         boss.indicatorMaterial = indicatorMat;
         SaveEnemyPrefab(root, boss, anim, data, OrcPrefabPath);
 

@@ -86130,37 +86130,6 @@ MonoBehaviour:
     spawnInterval: 0.4
     telegraphTime: 2
     bossHpTrigger: 0
-  - waveNumber: 0
-    enemiesToSpawn:
-    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
-    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
-    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
-    spawnPoints:
-    - {x: -9, y: 0.12, z: 66}
-    - {x: 9, y: 0.12, z: 66}
-    - {x: -8, y: 0.12, z: 72}
-    - {x: 8, y: 0.12, z: 72}
-    - {x: -6, y: 0.12, z: 60}
-    - {x: 6, y: 0.12, z: 60}
-    spawnInterval: 0.4
-    telegraphTime: 1
-    bossHpTrigger: 0.6
-  - waveNumber: 0
-    enemiesToSpawn:
-    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
-    - {fileID: 11400000, guid: bff2cd67b925dbc438f05cd47851a9dd, type: 2}
-    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
-    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
-    spawnPoints:
-    - {x: -9, y: 0.12, z: 66}
-    - {x: 9, y: 0.12, z: 66}
-    - {x: -8, y: 0.12, z: 72}
-    - {x: 8, y: 0.12, z: 72}
-    - {x: -6, y: 0.12, z: 60}
-    - {x: 6, y: 0.12, z: 60}
-    spawnInterval: 0.4
-    telegraphTime: 1
-    bossHpTrigger: 0.3
   timeBetweenWaves: 2.5
   entryGate: {fileID: 1014927948}
   entryBlocker: {fileID: 1560399509}
@@ -135737,6 +135706,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     spawnPoints:
     - {x: -6, y: 0.12, z: 36}
     - {x: 6, y: 0.12, z: 36}
@@ -135760,7 +135730,8 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     - {fileID: 11400000, guid: bff2cd67b925dbc438f05cd47851a9dd, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
-    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
+    - {fileID: 11400000, guid: 3d87dfcd0a37d4e4dad12e5fc87e8920, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     spawnPoints:
     - {x: -6, y: 0.12, z: 36}
     - {x: 6, y: 0.12, z: 36}
@@ -135782,16 +135753,65 @@ MonoBehaviour:
     - {fileID: 11400000, guid: ae1645357527d4f44a4a9827cb293809, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
-    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     spawnPoints:
     - {x: 0, y: 0.12, z: 37}
     - {x: -6, y: 0.12, z: 34}
     - {x: 6, y: 0.12, z: 34}
     - {x: 0, y: 0.12, z: 40}
+    - {x: -8, y: 0.12, z: 38}
+    - {x: 8, y: 0.12, z: 38}
+    - {x: -4, y: 0.12, z: 29}
+    - {x: 4, y: 0.12, z: 29}
     spawnInterval: 0.4
     telegraphTime: 1.4
     bossHpTrigger: 0
-  timeBetweenWaves: 2.5
+  - waveNumber: 0
+    enemiesToSpawn:
+    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
+    - {fileID: 11400000, guid: bff2cd67b925dbc438f05cd47851a9dd, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    spawnPoints:
+    - {x: -6, y: 0.12, z: 36}
+    - {x: 6, y: 0.12, z: 36}
+    - {x: 0, y: 0.12, z: 38.5}
+    - {x: -8.5, y: 0.12, z: 31}
+    - {x: 8.5, y: 0.12, z: 31}
+    - {x: -7, y: 0.12, z: 26}
+    - {x: 7, y: 0.12, z: 26}
+    - {x: 3, y: 0.12, z: 40.5}
+    - {x: -3, y: 0.12, z: 40.5}
+    - {x: 0, y: 0.12, z: 32}
+    - {x: -4, y: 0.12, z: 24}
+    - {x: 4, y: 0.12, z: 24}
+    spawnInterval: 0.4
+    telegraphTime: 1
+    bossHpTrigger: 0
+  - waveNumber: 0
+    enemiesToSpawn:
+    - {fileID: 11400000, guid: ae1645357527d4f44a4a9827cb293809, type: 2}
+    - {fileID: 11400000, guid: ae1645357527d4f44a4a9827cb293809, type: 2}
+    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    spawnPoints:
+    - {x: 0, y: 0.12, z: 37}
+    - {x: -6, y: 0.12, z: 34}
+    - {x: 6, y: 0.12, z: 34}
+    - {x: 0, y: 0.12, z: 40}
+    - {x: -8, y: 0.12, z: 38}
+    - {x: 8, y: 0.12, z: 38}
+    - {x: -4, y: 0.12, z: 29}
+    - {x: 4, y: 0.12, z: 29}
+    spawnInterval: 0.4
+    telegraphTime: 1.4
+    bossHpTrigger: 0
+  timeBetweenWaves: 3
   entryGate: {fileID: 88569721}
   entryBlocker: {fileID: 361056461}
   entrySeal: {fileID: 1175490403}
@@ -139120,6 +139140,8 @@ MonoBehaviour:
   spawnPoints: []
   randomSpawnRadius: 6
   slotRefreshTime: 0.5
+  scaleWithPlayerLevel: 1
+  maxEnemyLevel: 20
 --- !u!4 &1889602542
 Transform:
   m_ObjectHideFlags: 0
@@ -146228,6 +146250,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 3d87dfcd0a37d4e4dad12e5fc87e8920, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     - {fileID: 11400000, guid: 3d87dfcd0a37d4e4dad12e5fc87e8920, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     spawnPoints:
     - {x: -6.4, y: 0.12, z: 5.1}
     - {x: 6.4, y: 0.12, z: 5.1}
@@ -146251,7 +146274,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
-    - {fileID: 11400000, guid: bff2cd67b925dbc438f05cd47851a9dd, type: 2}
+    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
     - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
     spawnPoints:
     - {x: -6.4, y: 0.12, z: 5.1}
@@ -146271,7 +146294,34 @@ MonoBehaviour:
     spawnInterval: 0.4
     telegraphTime: 1
     bossHpTrigger: 0
-  timeBetweenWaves: 2.5
+  - waveNumber: 0
+    enemiesToSpawn:
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    - {fileID: 11400000, guid: 3d87dfcd0a37d4e4dad12e5fc87e8920, type: 2}
+    - {fileID: 11400000, guid: cd1da53b899f670459b2489f36b5d81d, type: 2}
+    - {fileID: 11400000, guid: bff2cd67b925dbc438f05cd47851a9dd, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    - {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+    - {fileID: 11400000, guid: 3d87dfcd0a37d4e4dad12e5fc87e8920, type: 2}
+    spawnPoints:
+    - {x: -6.4, y: 0.12, z: 5.1}
+    - {x: 6.4, y: 0.12, z: 5.1}
+    - {x: 0, y: 0.12, z: 7.5}
+    - {x: -9, y: 0.12, z: -1}
+    - {x: 9, y: 0.12, z: -1}
+    - {x: -4, y: 0.12, z: 9}
+    - {x: 4, y: 0.12, z: 9}
+    - {x: -9.5, y: 0.12, z: 4.5}
+    - {x: 9.5, y: 0.12, z: 4.5}
+    - {x: -6, y: 0.12, z: -6}
+    - {x: 6, y: 0.12, z: -6}
+    - {x: 0, y: 0.12, z: 1.5}
+    - {x: -9, y: 0.12, z: -8}
+    - {x: 9, y: 0.12, z: -8}
+    spawnInterval: 0.4
+    telegraphTime: 1
+    bossHpTrigger: 0
+  timeBetweenWaves: 3
   entryGate: {fileID: 0}
   entryBlocker: {fileID: 0}
   entrySeal: {fileID: 0}

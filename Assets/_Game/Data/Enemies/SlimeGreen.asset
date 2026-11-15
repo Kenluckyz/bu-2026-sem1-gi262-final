@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Green Slime
   prefab: {fileID: 244592159150267218, guid: 3ea777871b070404096f8e9819f132d9, type: 3}
-  maxHP: 30
+  maxHP: 40
   damage: 6
   expDrop: 8
   modelScale: 1.5

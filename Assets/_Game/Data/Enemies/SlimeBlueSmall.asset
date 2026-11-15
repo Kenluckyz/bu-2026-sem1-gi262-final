@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   enemyName: Blue Slime (Small)
   prefab: {fileID: 5437673850260193483, guid: d3e871a1c17ef684fa037510b02010f3, type: 3}
-  maxHP: 10
+  maxHP: 14
   damage: 3
   expDrop: 4
   modelScale: 1.1

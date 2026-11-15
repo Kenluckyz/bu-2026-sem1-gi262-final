@@ -645,6 +645,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
   owner: {fileID: 3847201956785476319}
   fill: {fileID: 247398731632056696}
+  showName: 1
+  fontSize: 40
+  levelColor: {r: 1, g: 0.82, b: 0.29, a: 1}
+  nameColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &4629581593120588746
 GameObject:
   m_ObjectHideFlags: 0
@@ -1164,9 +1168,11 @@ MonoBehaviour:
   standRatio: 0.8
   slotTolerance: 1
   separationWeight: 1.5
+  huntPlayer: 0
   slamClip: {fileID: -9189045474949371570, guid: 0eb1992a940017740a8ef45f58941952, type: 3}
   sweepClip: {fileID: 9183187657341730172, guid: aa4b93185b631454fa9d8ca5189072dc, type: 3}
   jumpClip: {fileID: -623603649343465320, guid: 65e6aeded6c67794b95cf3ef0e4b56a2, type: 3}
+  summonClip: {fileID: 5895754167420557781, guid: eb7707a5064b6684d9767d213d925bf0, type: 3}
   indicatorMaterial: {fileID: 2100000, guid: 5d05357714521444eb1b34829ec674dd, type: 2}
   telegraphHold: 0.25
   jumpLandDamage: 18
@@ -1196,6 +1202,13 @@ MonoBehaviour:
   slamForward: 0.8
   slamCooldown: 5
   slamHitPoint: 0.72
+  summonData: {fileID: 11400000, guid: 42c1c9e24cee066439dab2bebb9c268d, type: 2}
+  summonCount: 5
+  summonRadius: 3.5
+  firstSummonDelay: 6
+  summonCooldown: 15
+  summonAnimSpeed: 0.7
+  summonCastPoint: 0.55
 --- !u!1 &8095088360205590840
 GameObject:
   m_ObjectHideFlags: 0
