@@ -13,7 +13,7 @@ public class SpinPunchSkill : ActiveSkill
         {
             player.DealDamage(targets[i], Value());
         }
-        Debug.Log($"SpinPunch hit {targets.Count} targets");
+        Debug.Log("SpinPunch hit " + targets.Count + " targets");
     }
 }
 
@@ -53,7 +53,7 @@ public class OverPunchSkill : ActiveSkill
                 hitCount++;
             }
         }
-        Debug.Log($"OverPunch hit {hitCount} targets");
+        Debug.Log("OverPunch hit " + hitCount + " targets");
     }
 }
 
@@ -69,7 +69,7 @@ public class FinalExecutionSkill : ActiveSkill
         {
             player.DealDamage(targets[i], Value());
         }
-        Debug.Log($"FinalExecution hit {targets.Count} targets");
+        Debug.Log("FinalExecution hit " + targets.Count + " targets");
     }
 }
 
@@ -107,7 +107,7 @@ public class FireStormSkill : ActiveSkill
         {
             player.DealDamage(enemies[i], Value());
         }
-        Debug.Log($"FireStorm hit {count} lowest HP targets");
+        Debug.Log("FireStorm hit " + count + " lowest HP targets");
     }
 
     // selection sort แบบ SortEnemiesByRemainningEnergy1
@@ -123,7 +123,7 @@ public class FireStormSkill : ActiveSkill
                     minIndex = j;
                 }
             }
-            var temp = enemies[i];
+            Character temp = enemies[i];
             enemies[i] = enemies[minIndex];
             enemies[minIndex] = temp;
         }

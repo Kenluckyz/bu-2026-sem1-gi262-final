@@ -471,28 +471,6 @@ public class OrcBoss : Enemy
         base.Die();
     }
 
-    #region Test (คลิก ⋮ ที่คอมโพเนนต์ OrcBoss ตอนกด Play -> สั่งใช้สกิลทันที ไม่ต้องรอสุ่ม)
-    [ContextMenu("Test Skill/1 Jump")]
-    private void TestJump() { if (CanTest()) StartSkill(JumpRoutine()); }
-
-    [ContextMenu("Test Skill/2 Guard")]
-    private void TestGuard() { if (CanTest()) StartSkill(GuardRoutine()); }
-
-    [ContextMenu("Test Skill/3 Sweep")]
-    private void TestSweep() { if (CanTest()) StartSkill(SweepRoutine()); }
-
-    [ContextMenu("Test Skill/4 Slam")]
-    private void TestSlam() { if (CanTest()) StartSkill(SlamRoutine()); }
-
-    [ContextMenu("Test Skill/5 Summon")]
-    private void TestSummon() { if (CanTest()) StartSkill(SummonRoutine()); }
-
-    private bool CanTest()
-    {
-        return Application.isPlaying && isAlive && !isAttacking && target != null && target.IsAlive;
-    }
-    #endregion
-
     #region Helpers
     private void StartSkill(IEnumerator routine)
     {
