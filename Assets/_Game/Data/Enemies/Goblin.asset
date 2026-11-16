@@ -18,7 +18,9 @@ MonoBehaviour:
   damage: 7
   expDrop: 10
   modelScale: 1.3
-  moveSpeed: 4.2
+  hpPerLevel: 0.15
+  damagePerLevel: 0.1
+  moveSpeed: 20
   detectRange: 14
   attackRange: 1.3
   attackCooldown: 1

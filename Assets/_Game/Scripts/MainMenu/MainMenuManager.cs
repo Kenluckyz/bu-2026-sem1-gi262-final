@@ -1,80 +1,63 @@
-
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+// หน้าเมนูหลัก ปุ่ม Play = โหลดซีน Gameplay / ปุ่ม Exit = ออกเกม
+// ปุ่มบนหน้าจอเรียก Play() กับ Exit() ผ่าน OnClick ใน Inspector
 public class MainMenuManager : MonoBehaviour
 {
 #if UNITY_EDITOR
-    [Header("Drag Gameplay Scene Here")]
+    [Header("ลากซีน Gameplay มาใส่")]
     [SerializeField] private SceneAsset gameplayScene;
 #endif
 
-    [SerializeField, HideInInspector]
-    private string gameplayScenePath;
+    // path ของซีน (เก็บเป็นข้อความ ตอน Build เกมจริงไม่มี SceneAsset)
+    [SerializeField, HideInInspector] private string gameplayScenePath;
 
-    [Header("Loading UI (Optional)")]
+    [Header("หน้า Loading (ไม่ใส่ก็ได้)")]
     [SerializeField] private GameObject loadingPanel;
 
-    private bool isLoading = false;
+    private bool isLoading;
 
 #if UNITY_EDITOR
+    // ลากซีนใส่ใน Inspector แล้วจำ path ไว้ให้เอง
     private void OnValidate()
     {
-        if (gameplayScene != null)
-        {
-            gameplayScenePath =
-                AssetDatabase.GetAssetPath(gameplayScene);
-        }
-        else
-        {
-            gameplayScenePath = "";
-        }
+        gameplayScenePath = gameplayScene != null ? AssetDatabase.GetAssetPath(gameplayScene) : "";
     }
 #endif
 
     private void Awake()
     {
-        if (loadingPanel != null)
-            loadingPanel.SetActive(false);
+        if (loadingPanel != null) loadingPanel.SetActive(false);
     }
 
     public void Play()
     {
         if (isLoading) return;
 
-        int sceneIndex =
-            SceneUtility.GetBuildIndexByScenePath(
-                gameplayScenePath
-            );
-
+        // 1. หาลำดับซีนใน Build Settings
+        int sceneIndex = SceneUtility.GetBuildIndexByScenePath(gameplayScenePath);
         if (sceneIndex < 0)
         {
-            Debug.LogError(
-                "Gameplay Scene not found in Build Profiles!"
-            );
+            Debug.LogError("ไม่พบซีน Gameplay ใน Build Settings");
             return;
         }
 
+        // 2. โหลดซีนเบื้องหลัง
         StartCoroutine(LoadGame(sceneIndex));
     }
 
     private IEnumerator LoadGame(int sceneIndex)
     {
         isLoading = true;
+        if (loadingPanel != null) loadingPanel.SetActive(true);
+        yield return null; // รอ 1 เฟรมให้หน้า Loading ขึ้นก่อน
 
-        if (loadingPanel != null)
-            loadingPanel.SetActive(true);
-
-        yield return null;
-
-        AsyncOperation operation =
-            SceneManager.LoadSceneAsync(sceneIndex);
-
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneIndex);
         while (!operation.isDone)
         {
             yield return null;

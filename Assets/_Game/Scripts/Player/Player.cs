@@ -341,7 +341,7 @@ public class Player : Character
     public bool IsSkillAvailable(SkillData skillData)
     {
         if (skillData.isStartAvailable) return true;
-        foreach (var owned in skills.Values)
+        foreach (Skill owned in skills.Values)
         {
             if (owned.Data.nextSkills.Contains(skillData)) return true;
         }
@@ -351,7 +351,7 @@ public class Player : Character
     public void PrintSkills()
     {
         Debug.Log("--- Skills ---");
-        foreach (var entry in skills)
+        foreach (KeyValuePair<string, Skill> entry in skills)
         {
             Debug.Log(entry.Key + " Lv." + entry.Value.Level);
         }
@@ -382,7 +382,7 @@ public class Player : Character
                 moveSpeed += isPercent ? moveSpeed * value : value;
                 break;
         }
-        Debug.Log($"Stat boost {type} +{value}{(isPercent ? " (x%)" : "")}");
+        Debug.Log("Stat boost " + type + " +" + value + (isPercent ? " (x%)" : ""));
     }
 
     // passive กดไม่ได้
@@ -439,7 +439,7 @@ public class Player : Character
 
     private void UpdateSkillInput()
     {
-        foreach (var skill in skills.Values)
+        foreach (Skill skill in skills.Values)
         {
             skill.Tick(this);
         }

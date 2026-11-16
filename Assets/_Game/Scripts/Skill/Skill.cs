@@ -27,11 +27,11 @@ public abstract class Skill
     {
         if (IsMaxLevel)
         {
-            Debug.Log($"Skill {Name} is already max level.");
+            Debug.Log("Skill " + Name + " is already max level.");
             return;
         }
         level++;
-        Debug.Log($"Skill {Name} level up -> {level}");
+        Debug.Log("Skill " + Name + " level up -> " + level);
     }
 
     // ตอนได้สกิล
@@ -56,7 +56,7 @@ public abstract class ActiveSkill : Skill
     {
         if (!IsReady)
         {
-            Debug.Log($"{Name} cooldown {CooldownRemaining:0.0}s");
+            Debug.Log(Name + " cooldown " + CooldownRemaining.ToString("0.0") + "s");
             return false;
         }
         lastUseTime = Time.time;

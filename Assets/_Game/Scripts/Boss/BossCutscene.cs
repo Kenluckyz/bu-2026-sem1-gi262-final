@@ -254,16 +254,6 @@ public class BossCutscene : MonoBehaviour
         step(1f);
     }
 
-    private IEnumerator Wait(float seconds)
-    {
-        float t = 0f;
-        while (t < seconds)
-        {
-            t += Time.unscaledDeltaTime;
-            yield return null;
-        }
-    }
-
     private static void SetVisible(List<Renderer> renderers, bool visible)
     {
         for (int i = 0; i < renderers.Count; i++)
