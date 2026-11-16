@@ -3,12 +3,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-// UI ของดันเจี้ยน (ไม่รวมแถบเลือด/สกิลของ Boat ซึ่งเป็น HUD + SkillBarUI เดิม)
-// - มุมขวาบน: ห้อง / เวฟ / ศัตรูที่เหลือ
-// - กลางจอ: ป้ายประกาศ (เข้าห้อง, เวฟใหม่, ผ่านห้อง)
-// - บนกลาง: แถบเลือดบอส
-// - หน้าจบเกม (ชนะ / แพ้) และหน้าหยุดเกม
-// สร้าง UI ในโค้ดตอนเริ่มเกม (แบบเดียวกับ EnemySpawnPanel)
 public class GameplayHUD : MonoBehaviour
 {
     private static readonly Color Ivory = new Color(0.93f, 0.89f, 0.78f);
@@ -22,28 +16,23 @@ public class GameplayHUD : MonoBehaviour
     private EnemyManager enemyManager;
     private Font font;
 
-    // มุมขวาบน
     private Text roomText;
     private Text waveText;
     private Text countText;
 
-    // ป้ายกลางจอ
     private Text bannerTitle;
     private Text bannerSub;
     private float bannerTimer;
     private const float BannerTime = 2.6f;
 
-    // แถบเลือดบอส
     private GameObject bossBar;
     private Text bossName;
     private RectTransform bossFill;
-    private RectTransform bossTrail; // แถบขาวที่ลดตามช้า ๆ ให้เห็นว่าโดนไปเท่าไร
+    private RectTransform bossTrail; 
     private Enemy boss;
     private float bossRatio = 1f;
     private float trailRatio = 1f;
     private const float BossBarWidth = 640f;
-
-    // หน้าจบ / หยุด
     private GameObject endPanel;
     private Text endTitle;
     private Text endStats;

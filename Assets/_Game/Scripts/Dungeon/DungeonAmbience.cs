@@ -1,6 +1,4 @@
 using UnityEngine;
-
-// ไฟคบเพลิงกะพริบ + วงเวทหมุนช้า ๆ ให้ดันเจี้ยนดูมีชีวิต (ของเดิมอยู่ใน DungeonRoomFlow ของซีน Test_Dungeon)
 public class DungeonAmbience : MonoBehaviour
 {
     public Transform[] flames;
@@ -12,7 +10,6 @@ public class DungeonAmbience : MonoBehaviour
 
     private void Start()
     {
-        // จำค่าเริ่มต้นไว้ แล้วแกว่งรอบค่านั้น
         flameScale = new Vector3[flames.Length];
         for (int i = 0; i < flames.Length; i++)
         {
