@@ -3,21 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// คุมลำดับห้องในดันเจี้ยน (DungeonManager ตาม Diagram)
-// ห้อง 1 -> ผ่าน -> เปิดประตู -> ผู้เล่นเดินเข้าห้อง 2 -> ... -> ห้องบอส -> บอสตาย = ผ่านดันเจี้ยน
 public class DungeonManager : MonoBehaviour
 {
     [SerializeField] private List<Room> rooms = new List<Room>();
     [SerializeField] private EnemyManager enemyManager;
     [SerializeField] private Player player;
-    [Tooltip("Material ของวงเตือนบนพื้น (Sprites/Default) ใช้ร่วมกับ AttackIndicator")]
     [SerializeField] private Material indicatorMaterial;
-    [Tooltip("รอกี่วินาทีก่อนห้องแรกเริ่ม")]
     [SerializeField] private float firstRoomDelay = 2.5f;
-    [Tooltip("ผ่านห้องแล้วฟื้นเลือดกี่ส่วน (0.35 = 35% ของเลือดเต็ม)")]
     [Range(0f, 1f)] [SerializeField] private float healOnRoomClear = 0.35f;
-
-    [Header("Sanctuary - จุดพักก่อนห้องบอส")]
     [SerializeField] private Transform sanctuary;
     [SerializeField] private float sanctuaryRadius = 2.5f;
 
@@ -30,7 +23,7 @@ public class DungeonManager : MonoBehaviour
     public event Action<Room, int> OnWaveStarted;
     public event Action<Enemy> OnBossSpawned;
     public event Action OnDungeonCleared;
-    public event Action<string, string> OnAnnounce; // (หัวข้อใหญ่, ข้อความเล็ก) ให้ HUD แสดงกลางจอ
+    public event Action<string, string> OnAnnounce; //พวกข้อความ ผ่านห้อง ที่ส่งต่อไปให้ GameplayHUD โชว์
 
     public Room CurrentRoom => currentRoomIndex >= 0 && currentRoomIndex < rooms.Count ? rooms[currentRoomIndex] : null;
     public int CurrentRoomIndex => currentRoomIndex;
@@ -45,13 +38,12 @@ public class DungeonManager : MonoBehaviour
         StartCoroutine(FirstRoomRoutine());
     }
 
-    // เตรียมห้องทั้งหมด: เรียงตาม roomId (Insertion Sort) แล้วผูก event
     public void GenerateDungeon(int level)
     {
-        // 1. ไม่ได้ใส่ห้องไว้ -> หาจากลูกของตัวเอง
+        //  ตรวจสอบว่า list มีห้องมั้ย เเล้วก็นำห้องที่มีมาเพิ่ม
         if (rooms.Count == 0) rooms.AddRange(GetComponentsInChildren<Room>());
 
-        // 2. Insertion Sort ตาม roomId
+        // ใช้ Insertion Sort เพื่อใช้เรียงลำดับห้อง 
         for (int i = 1; i < rooms.Count; i++)
         {
             Room key = rooms[i];
@@ -64,78 +56,74 @@ public class DungeonManager : MonoBehaviour
             rooms[j + 1] = key;
         }
 
-        // 3. ตั้งค่าแต่ละห้อง
+        // วนลูปทุกห้องเพื่อ setup เวลา clear หรือ เริ่ม wave เเละ boss spawn
         for (int i = 0; i < rooms.Count; i++)
         {
             Room room = rooms[i];
-            room.SetUP(enemyManager, player, indicatorMaterial);
+            room.SetUP(enemyManager, player, indicatorMaterial); // ส่งข้อมูลที่แต่ละห้องต้องใช้
             room.OnCleared += HandleRoomCleared;
             room.OnWaveStarted += HandleWaveStarted;
             room.OnBossSpawned += HandleBossSpawned;
         }
-        Debug.Log("[Dungeon] เลเวล " + level + " มีทั้งหมด " + rooms.Count + " ห้อง");
     }
 
     private IEnumerator FirstRoomRoutine()
     {
-        if (rooms.Count == 0) yield break;
-        OnAnnounce?.Invoke("ROOM 1", "Defeat every enemy to break the seal");
-        yield return new WaitForSeconds(firstRoomDelay);
-        EnterRoom(0);
+        if (rooms.Count == 0) yield break; // ตรวจสอบว่ามีห้องมั้ย
+        OnAnnounce?.Invoke("ROOM 1", "Defeat every enemy to break the seal"); // ประกาศของห้องเเรกว่าให้ ผู้เล่นสู้จัดการศัตรูให้หมด
+        yield return new WaitForSeconds(firstRoomDelay); // รอเวลาก่อนเริ่มห้องเเรก 
+        EnterRoom(0); // เริ่มห้องแรก
     }
 
     private void Update()
     {
-        if (player == null || !player.IsAlive || dungeonCleared) return;
+        if (player == null || !player.IsAlive || dungeonCleared) return; // ตรวจสอบว่าปู้เล่นยังอยู่มั้ย เคลียดันเจี้ยนได้หรือยัง 
 
-        // 1. ห้องตอนนี้ผ่านแล้ว + ผู้เล่นเดินเข้าห้องถัดไป -> เริ่มห้องนั้น
         Room room = CurrentRoom;
         int next = currentRoomIndex + 1;
-        if (room != null && room.IsCleared && next < rooms.Count && rooms[next].IsPlayerInside(player.transform.position))
+        if (room != null && room.IsCleared && next < rooms.Count && rooms[next].IsPlayerInside(player.transform.position)) // ต้องผ่านเงื่อนไขทั้งหมด ถึงจะผ่านไปห้องต่อไปได้ 
         {
             EnterRoom(next);
         }
 
-        // 2. จุดพัก: เหยียบวงทองแล้วเลือดเต็ม (ครั้งเดียว)
+        // จุดฮีล 
         if (!sanctuaryUsed && sanctuary != null)
         {
-            Vector3 diff = player.transform.position - sanctuary.position;
-            diff.y = 0f;
-            if (diff.magnitude <= sanctuaryRadius)
+            Vector3 diff = player.transform.position - sanctuary.position; //คำนวณระยะห่างระหว่าง ตัวละคร กับจุดฮีล
+            diff.y = 0f; //ไม่สนใจความสูง คำนวณระยะห่างเฉพาะแกน X และ Z
+            if (diff.magnitude <= sanctuaryRadius) // ตรวจสอบว่า Boat เข้าจุดวงฮีลหรือยัง
             {
                 sanctuaryUsed = true;
-                player.Heal(player.MaxHP);
+                player.Heal(player.MaxHP); // ฮีลเลือดผู้เล่น
                 OnAnnounce?.Invoke("SANCTUARY", "Your wounds are healed. The warlord awaits...");
-                Debug.Log("[Dungeon] จุดพัก: เลือดเต็ม");
             }
         }
     }
 
     public void EnterRoom(int index)
     {
-        if (index < 0 || index >= rooms.Count) return;
-        currentRoomIndex = index;
-        Room room = rooms[index];
-        string subtitle = room.isBossRoom ? "Slay the warlord" : room.waves.Count + " waves - survive them all";
-        OnAnnounce?.Invoke("ROOM " + (index + 1), subtitle);
-        room.StartRoom();
+        if (index < 0 || index >= rooms.Count) return; //ตรวจสอบว่าห้องที่ต้องเข้าไปมีอยู่จิงมั้ย
+        currentRoomIndex = index; // บันทึกว่าตอนนี้เราอยู่ห้องไหน
+        Room room = rooms[index]; // ดึงข้อมูลห้องจาก List Room มาเก็บไว้ในตัวแปร room
+        string subtitle = room.isBossRoom ? "Slay the warlord" : room.waves.Count + " waves - survive them all"; // เชควาสใช่ห้องบอสทั้ย
+        OnAnnounce?.Invoke("ROOM " + (index + 1), subtitle); // ส่งข้อความไปให้ GameplayHUD โชว์ว่าอยู่ห้องไหน 
+        room.StartRoom(); // เรียกใช้method startRoom 
         OnRoomEntered?.Invoke(room);
     }
 
-    // ผ่านห้อง: ฟื้นเลือด + เปิดทางไปห้องถัดไป / ห้องสุดท้าย = ผ่านดันเจี้ยน
     public void UnlockNextRoom()
     {
-        Room room = CurrentRoom;
-        if (room == null) return;
-        room.OpenDoor();
-        if (currentRoomIndex + 1 >= rooms.Count)
+        Room room = CurrentRoom; // ดึงข้อมูลห้องปัจจุบันมาเก็บไว้ในตัวแปร room
+        if (room == null) return; 
+        room.OpenDoor(); // เรียกใช้ method OpenDoor ของห้องปัจจุบันเพื่อเปิดประตูไปห้องต่อไป
+        if (currentRoomIndex + 1 >= rooms.Count) // ตรงนี้ใช้ตรวจสอบว่า ยังมีห้องถัดไปเหลืออยู่หรือไม่
         {
             dungeonCleared = true;
             Debug.Log("[Dungeon] ผ่านดันเจี้ยนแล้ว!");
             OnDungeonCleared?.Invoke();
             return;
         }
-        if (player != null) player.Heal(player.MaxHP * healOnRoomClear);
+        if (player != null) player.Heal(player.MaxHP * healOnRoomClear); // ฮีลเลือดผู้เล่นเมื่อผ่านห้อง 
         OnAnnounce?.Invoke("CHAMBER CLEARED", "The seal is broken - follow the lanterns");
     }
 
@@ -169,10 +157,4 @@ public class DungeonManager : MonoBehaviour
         OnBossSpawned?.Invoke(boss);
     }
 
-    private void OnDrawGizmosSelected()
-    {
-        if (sanctuary == null) return;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(sanctuary.position, sanctuaryRadius);
-    }
 }

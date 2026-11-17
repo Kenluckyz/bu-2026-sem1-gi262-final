@@ -3,18 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// ห้องหนึ่งห้องในดันเจี้ยน (Room ตาม Diagram) มีหลายเวฟ
-// ผู้เล่นเดินเข้าห้อง -> ประตูหลังปิด (ขังไว้) -> เวฟ 1, 2, 3 ... -> ตายหมด -> ประตูหน้าเปิด
-// ห้องบอส: เวฟแรกคือบอส / เวฟถัดไปคือลูกน้อง เกิดเมื่อเลือดบอสลดถึงที่กำหนด / บอสตาย = ผ่านห้อง
 public class Room : MonoBehaviour
 {
     [Header("Room")]
     public int roomId;
     public bool isBossRoom;
-    [Tooltip("ขนาดครึ่งหนึ่งของพื้นที่ (x = กว้าง, y = ลึก) วัดจากตัว Room ใช้เช็กว่าผู้เล่นเดินเข้ามาแล้ว")]
     public Vector2 enterHalfSize = new Vector2(7f, 6f);
     public List<Wave> waves = new List<Wave>();
-    [Tooltip("พักระหว่างเวฟกี่วินาที")]
     public float timeBetweenWaves = 2.5f;
 
     [Header("ประตูทางเข้า (ปิดขังตอนเริ่มห้อง)")]
@@ -29,7 +24,7 @@ public class Room : MonoBehaviour
 
     private static readonly Color OpenColor = new Color(0.2f, 1f, 0.65f);
     private static readonly Color ClosedColor = new Color(1f, 0.18f, 0.08f);
-    private const float GateDownY = -3.7f; // ประตูจมลงพื้น = เปิด
+    private const float GateDownY = -3.7f; 
     private const float GateSpeed = 5f;
 
     private int currentWaveIndex = -1;
@@ -64,32 +59,30 @@ public class Room : MonoBehaviour
         SnapGates();
     }
 
-    // ผู้เล่นอยู่ในพื้นที่ห้องไหม (เช็กสี่เหลี่ยมรอบตัว Room)
+    // ตรวจสอบว่าผู้เล่นเข้าห้องมาหรือยัง 
     public bool IsPlayerInside(Vector3 position)
     {
         Vector3 local = position - transform.position;
         return Mathf.Abs(local.x) <= enterHalfSize.x && Mathf.Abs(local.z) <= enterHalfSize.y;
     }
 
-    public void StartRoom()
+    public void StartRoom() // ตรวจสอบว่าห้องเริ่มแล้วหรือยัง ถ้ายังให้เริ่มห้อง 
     {
         if (isStarted) return;
         isStarted = true;
-        Debug.Log("[Room] เข้าห้อง " + roomId);
         StartNextWave();
     }
 
     public void StartNextWave()
     {
-        currentWaveIndex++;
-        if (currentWaveIndex >= waves.Count) return;
-        // ห้องบอส: เวฟถัดจากบอสรอเลือดบอสลดก่อน ไม่เริ่มต่อกันเอง
-        if (isBossRoom && currentWaveIndex > 0) return;
+        currentWaveIndex++; 
+        if (currentWaveIndex >= waves.Count) return; //ตรวจสอบว่า Wave หมดหรือยัง
+        if (isBossRoom && currentWaveIndex > 0) return; //ตรวจสอบว่าเป็นห้องบอสมั้ย
         StartCoroutine(waves[currentWaveIndex].SpawnWave(this));
-        OnWaveStarted?.Invoke(this, currentWaveIndex + 1);
+        OnWaveStarted?.Invoke(this, currentWaveIndex + 1); 
     }
 
-    private IEnumerator NextWaveAfterDelay()
+    private IEnumerator NextWaveAfterDelay() //หน่วงเเวลา ก่อนเริ่มเวฟถัดไป
     {
         isWaiting = true;
         yield return new WaitForSeconds(timeBetweenWaves);
@@ -97,7 +90,7 @@ public class Room : MonoBehaviour
         StartNextWave();
     }
 
-    // Wave แจ้งทุกครั้งที่เกิดศัตรู: ให้ไล่ผู้เล่นตลอด / ห้องบอส: ตัวแรกที่เกิด = บอส
+    // กำหนดให้ศัตรูที่เกิดมาไล่ตีผู้เล่น และถ้าเป็นห้องบอส ให้บันทึกว่าศัตรูตัวนั้นคือบอส
     public void HandleEnemySpawned(Enemy enemy)
     {
         if (enemy == null) return;
