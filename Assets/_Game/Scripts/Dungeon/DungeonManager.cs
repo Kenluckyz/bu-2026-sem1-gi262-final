@@ -79,7 +79,7 @@ public class DungeonManager : MonoBehaviour
     private IEnumerator FirstRoomRoutine()
     {
         if (rooms.Count == 0) yield break;
-        OnAnnounce?.Invoke(rooms[0].roomName, "Defeat every enemy to break the seal");
+        OnAnnounce?.Invoke("ROOM 1", "Defeat every enemy to break the seal");
         yield return new WaitForSeconds(firstRoomDelay);
         EnterRoom(0);
     }
@@ -117,7 +117,7 @@ public class DungeonManager : MonoBehaviour
         currentRoomIndex = index;
         Room room = rooms[index];
         string subtitle = room.isBossRoom ? "Slay the warlord" : room.waves.Count + " waves - survive them all";
-        OnAnnounce?.Invoke(room.roomName, subtitle);
+        OnAnnounce?.Invoke("ROOM " + (index + 1), subtitle);
         room.StartRoom();
         OnRoomEntered?.Invoke(room);
     }
@@ -137,12 +137,6 @@ public class DungeonManager : MonoBehaviour
         }
         if (player != null) player.Heal(player.MaxHP * healOnRoomClear);
         OnAnnounce?.Invoke("CHAMBER CLEARED", "The seal is broken - follow the lanterns");
-    }
-
-    public Room GetRoom(int index)
-    {
-        if (index < 0 || index >= rooms.Count) return null;
-        return rooms[index];
     }
 
     public bool IsBossRoom()

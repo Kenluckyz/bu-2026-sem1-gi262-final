@@ -15,8 +15,6 @@ public class BossCutscene : MonoBehaviour
     [SerializeField] private GameObject summonVFX;
     [SerializeField] private float summonScale = 1.6f;
     [SerializeField] private float summonLift = 0.25f; // ยกขึ้นนิดนึง ไม่ให้พื้นบัง
-    [SerializeField] private string bossTitle = "ORC WARLORD";
-    [SerializeField] private string bossSubtitle = "เจ้าแห่งบัลลังก์โลหิต";
     [SerializeField] private float moveTime = 0.8f; // กล้องเลื่อนกี่วิ
     [SerializeField] private float revealPoint = 0.55f; // บอสโผล่ตอนยันต์ไปกี่ส่วน
     [SerializeField] private float faceTime = 1.1f; // ซูมหน้ากี่วิ
@@ -28,17 +26,38 @@ public class BossCutscene : MonoBehaviour
     [SerializeField] private float closeZoomFov = 8f; // ซูมกระแทก
     [SerializeField] private float cutsceneFov = 28f; // fov แคบ ไม่เห็นขอบแมพ
 
+    [Header("UI ในซีน (BossFX > BossIntroCanvas) แก้ข้อความ/สี/ตำแหน่งใน Hierarchy ได้")]
+    [SerializeField] private GameObject introCanvas;
+    [SerializeField] private RectTransform topBar;
+    [SerializeField] private RectTransform bottomBar;
+    [SerializeField] private Text title;
+    [SerializeField] private Text subtitle;
+    [SerializeField] private RawImage vignette;
+    [SerializeField] private Image flash;
+    [SerializeField] private float barHeight = 130f; // แถบดำสูงสุด
+
     private bool played;
     // โหลดของหนักไว้ก่อน ไม่งั้นกระตุกตอนบอสเกิด
     private NFEffect preparedFX;
-    private Font preparedFont;
-    private Texture2D preparedVignette;
+    // สีที่ตั้งไว้ในซีน (โค้ดแค่ปรับความใส)
+    private Color titleColor;
+    private Color subtitleColor;
+    private Color vignetteColor;
 
     private void Start()
     {
-        preparedFont = Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Tahoma" }, 32);
-        preparedFont.RequestCharactersInTexture(bossTitle + bossSubtitle, 96);
-        preparedVignette = MakeVignette();
+        if (introCanvas != null)
+        {
+            // ฟอนต์ไทยของ Windows ใส่ในซีนไม่ได้ เลยเปลี่ยนตอนเริ่มเกม และโหลดตัวอักษรไว้ก่อน
+            Font font = Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Tahoma" }, 32);
+            font.RequestCharactersInTexture(title.text + subtitle.text, 96);
+            title.font = font;
+            subtitle.font = font;
+            titleColor = title.color;
+            subtitleColor = subtitle.color;
+            vignetteColor = vignette.color;
+            introCanvas.SetActive(false);
+        }
         if (summonVFX != null)
         {
             // สร้างยันต์ไว้ก่อนแบบ Prewarm
@@ -68,7 +87,7 @@ public class BossCutscene : MonoBehaviour
         Camera cam = Camera.main;
         CameraFollow follow = cam != null ? cam.GetComponent<CameraFollow>() : null;
         Player player = FindAnyObjectByType<Player>();
-        if (cam == null) yield break;
+        if (cam == null || introCanvas == null) yield break;
 
         // 1. หยุดเกม ปิดกล้องตาม ให้บอสหันมาหาผู้เล่น
         float oldScale = Time.timeScale;
@@ -104,7 +123,13 @@ public class BossCutscene : MonoBehaviour
         Vector3 right = boss.transform.right;
         SetVisible(bossRenderers, false); // ซ่อนไว้ก่อน ค่อยโผล่จากยันต์
 
-        GameObject ui = BuildUI(out RectTransform topBar, out RectTransform bottomBar, out Text title, out Text subtitle, out RawImage vignette, out Image flash);
+        // เปิด UI cutscene เริ่มจากใส ๆ
+        introCanvas.SetActive(true);
+        SetBars(0f);
+        title.color = WithAlpha(titleColor, 0f);
+        subtitle.color = WithAlpha(subtitleColor, 0f);
+        vignette.color = WithAlpha(vignetteColor, 0f);
+        flash.color = new Color(1f, 1f, 1f, 0f);
         Vector3 startPos = cam.transform.position;
         Quaternion startRot = cam.transform.rotation;
         Vector3 offset = player != null ? startPos - player.transform.position : new Vector3(0f, 7f, -5.5f);
@@ -114,7 +139,7 @@ public class BossCutscene : MonoBehaviour
         List<Canvas> hiddenCanvases = new List<Canvas>();
         foreach (Canvas c in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
         {
-            if (c.isRootCanvas && c.enabled && c.gameObject != ui) { c.enabled = false; hiddenCanvases.Add(c); }
+            if (c.isRootCanvas && c.enabled && c.gameObject != introCanvas) { c.enabled = false; hiddenCanvases.Add(c); }
         }
         // ซ่อนพื้นแดงที่ค้างอยู่ด้วย
         List<Renderer> indicatorRenderers = new List<Renderer>();
@@ -144,8 +169,8 @@ public class BossCutscene : MonoBehaviour
             float e = Mathf.SmoothStep(0f, 1f, k);
             cam.transform.SetPositionAndRotation(Vector3.Lerp(startPos, widePos, e), Quaternion.Slerp(startRot, wideRot, e));
             if (!cam.orthographic) cam.fieldOfView = Mathf.Lerp(baseFov, cutsceneFov, e);
-            SetBars(topBar, bottomBar, e);
-            vignette.color = new Color(0.12f, 0f, 0f, 0.85f * e);
+            SetBars(e);
+            vignette.color = WithAlpha(vignetteColor, vignetteColor.a * e);
         });
 
         // 3. ยันต์เรียกบอส กล้องเลื่อนข้างช้าๆ
@@ -205,10 +230,10 @@ public class BossCutscene : MonoBehaviour
             if (!cam.orthographic) cam.fieldOfView = cutsceneFov + 12f; // กว้างขึ้นนิด
             // ชื่อใหญ่แล้วหดลง
             float ta = Mathf.Clamp01(shownTime / 0.25f);
-            title.color = new Color(1f, 0.85f, 0.4f, ta);
+            title.color = WithAlpha(titleColor, ta);
             title.rectTransform.localScale = Vector3.one * Mathf.Lerp(2.2f, 1f, 1f - Mathf.Pow(1f - ta, 3f));
             float sa = Mathf.Clamp01((shownTime - 0.3f) / 0.4f);
-            subtitle.color = new Color(1f, 0.6f, 0.55f, sa);
+            subtitle.color = WithAlpha(subtitleColor, sa);
             flash.color = new Color(1f, 0.85f, 0.6f, Mathf.Max(0f, 0.6f - shownTime / 0.25f));
             yield return null;
         }
@@ -221,11 +246,11 @@ public class BossCutscene : MonoBehaviour
         {
             float e = Mathf.SmoothStep(0f, 1f, k);
             cam.transform.SetPositionAndRotation(Vector3.Lerp(fromPos, backPos, e), Quaternion.Slerp(fromRot, startRot, e));
-            SetBars(topBar, bottomBar, 1f - e);
+            SetBars(1f - e);
             if (!cam.orthographic) cam.fieldOfView = Mathf.Lerp(cutsceneFov, baseFov, e);
-            vignette.color = new Color(0.12f, 0f, 0f, 0.85f * (1f - e));
-            title.color = new Color(1f, 0.85f, 0.4f, 1f - e);
-            subtitle.color = new Color(1f, 0.6f, 0.55f, 1f - e);
+            vignette.color = WithAlpha(vignetteColor, vignetteColor.a * (1f - e));
+            title.color = WithAlpha(titleColor, 1f - e);
+            subtitle.color = WithAlpha(subtitleColor, 1f - e);
         });
 
         // 7. คืนทุกอย่าง เริ่มสู้
@@ -234,7 +259,7 @@ public class BossCutscene : MonoBehaviour
         foreach (Canvas c in hiddenCanvases) if (c != null) c.enabled = true;
         SetVisible(playerRenderers, true);
         SetVisible(indicatorRenderers, true);
-        Destroy(ui);
+        introCanvas.SetActive(false);
         if (fx != null) Destroy(fx.gameObject);
         if (follow != null) follow.enabled = true;
         if (boss != null) boss.enabled = true;
@@ -262,105 +287,16 @@ public class BossCutscene : MonoBehaviour
         }
     }
 
-    private static void SetBars(RectTransform top, RectTransform bottom, float k)
+    private void SetBars(float k)
     {
-        float h = 130f * k; // แถบดำสูงสุด 130px
-        top.sizeDelta = new Vector2(0f, h);
-        bottom.sizeDelta = new Vector2(0f, h);
+        float h = barHeight * k;
+        topBar.sizeDelta = new Vector2(0f, h);
+        bottomBar.sizeDelta = new Vector2(0f, h);
     }
 
-    private GameObject BuildUI(out RectTransform top, out RectTransform bottom, out Text title, out Text subtitle, out RawImage vignette, out Image flash)
+    private static Color WithAlpha(Color color, float alpha)
     {
-        GameObject canvasObj = new GameObject("BossIntroCanvas", typeof(Canvas), typeof(CanvasScaler));
-        Canvas canvas = canvasObj.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 60;
-        CanvasScaler scaler = canvasObj.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
-        scaler.matchWidthOrHeight = 0.5f;
-
-        // ขอบจอมืดแดง
-        GameObject vig = new GameObject("Vignette", typeof(RectTransform), typeof(RawImage));
-        vig.transform.SetParent(canvasObj.transform, false);
-        RectTransform vrt = vig.GetComponent<RectTransform>();
-        vrt.anchorMin = Vector2.zero; vrt.anchorMax = Vector2.one; vrt.offsetMin = vrt.offsetMax = Vector2.zero;
-        RawImage raw = vig.GetComponent<RawImage>();
-        raw.texture = preparedVignette != null ? preparedVignette : MakeVignette();
-        raw.raycastTarget = false;
-        raw.color = new Color(0.12f, 0f, 0f, 0f);
-        vignette = raw;
-        // แฟลช
-        GameObject fl = new GameObject("Flash", typeof(RectTransform), typeof(Image));
-        fl.transform.SetParent(canvasObj.transform, false);
-        RectTransform frt = fl.GetComponent<RectTransform>();
-        frt.anchorMin = Vector2.zero; frt.anchorMax = Vector2.one; frt.offsetMin = frt.offsetMax = Vector2.zero;
-        flash = fl.GetComponent<Image>();
-        flash.color = new Color(1f, 1f, 1f, 0f);
-        flash.raycastTarget = false;
-
-        top = MakeBar(canvasObj.transform, "TopBar", new Vector2(0f, 1f));
-        bottom = MakeBar(canvasObj.transform, "BottomBar", new Vector2(0f, 0f));
-
-        Font font = preparedFont != null ? preparedFont : Font.CreateDynamicFontFromOSFont(new[] { "Leelawadee UI", "Tahoma" }, 32);
-        title = MakeText(canvasObj.transform, "Title", font, 96, new Vector2(0f, 260f));
-        title.text = bossTitle;
-        subtitle = MakeText(canvasObj.transform, "Subtitle", font, 36, new Vector2(0f, 185f));
-        subtitle.text = bossSubtitle;
-        return canvasObj;
-    }
-
-    // สร้างรูปขอบจอมืดเอง ไม่ต้องใช้ไฟล์
-    private static Texture2D MakeVignette()
-    {
-        const int size = 128;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        tex.wrapMode = TextureWrapMode.Clamp;
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float dx = (x + 0.5f) / size * 2f - 1f;
-                float dy = (y + 0.5f) / size * 2f - 1f;
-                float d = Mathf.Sqrt(dx * dx + dy * dy);
-                float a = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.45f, 1.2f, d));
-                tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
-            }
-        }
-        tex.Apply();
-        return tex;
-    }
-
-    private static RectTransform MakeBar(Transform parent, string objName, Vector2 anchorY)
-    {
-        GameObject bar = new GameObject(objName, typeof(RectTransform), typeof(Image));
-        bar.transform.SetParent(parent, false);
-        RectTransform rt = bar.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0f, anchorY.y);
-        rt.anchorMax = new Vector2(1f, anchorY.y);
-        rt.pivot = new Vector2(0.5f, anchorY.y);
-        rt.sizeDelta = Vector2.zero;
-        bar.GetComponent<Image>().color = Color.black;
-        return rt;
-    }
-
-    private static Text MakeText(Transform parent, string objName, Font font, int size, Vector2 pos)
-    {
-        GameObject obj = new GameObject(objName, typeof(RectTransform), typeof(Text));
-        obj.transform.SetParent(parent, false);
-        RectTransform rt = obj.GetComponent<RectTransform>();
-        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f); // ชิดล่าง ไม่บังบอส
-        rt.sizeDelta = new Vector2(1400f, 130f);
-        rt.anchoredPosition = pos;
-        Text text = obj.GetComponent<Text>();
-        text.font = font;
-        text.fontSize = size;
-        text.fontStyle = FontStyle.Bold;
-        text.alignment = TextAnchor.MiddleCenter;
-        text.color = new Color(1f, 1f, 1f, 0f);
-        Outline outline = obj.AddComponent<Outline>();
-        outline.effectColor = new Color(0.25f, 0f, 0f, 0.9f);
-        outline.effectDistance = new Vector2(3f, -3f);
-        return text;
+        color.a = alpha;
+        return color;
     }
 }

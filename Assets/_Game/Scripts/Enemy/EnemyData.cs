@@ -39,10 +39,7 @@ public class EnemyData : ScriptableObject
     [Tooltip("ชื่อ State ท่าตีใน Animator — สุ่มเล่นทีละท่า")]
     public string[] attackAnims = { "Attack1" };
 
-    [Header("Hurt / Death")]
-    [Tooltip("โดนตีแล้วชะงัก (ยกเลิกท่าตี) ไหม — ศัตรูอึด ๆ อย่างโกเลม/บอสควรปิด")]
-    public bool canBeStunned = true;
-    public float stunTime = 0.35f;
+    [Header("Death")]
     [Tooltip("ศพค้างกี่วินาทีก่อนหายไป")]
     public float corpseTime = 3f;
 

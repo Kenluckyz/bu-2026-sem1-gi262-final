@@ -154,8 +154,6 @@ public static class EnemySceneBuilder
             data.hitPoint = 0.45f;
             data.attackAnimSpeed = 1.3f;
             data.attackAnims = new[] { "Attack1", "Attack2" };
-            data.canBeStunned = true;
-            data.stunTime = 0.35f;
             data.corpseTime = 3f;
             AssetDatabase.CreateAsset(data, GoblinDataPath);
         }
@@ -203,8 +201,6 @@ public static class EnemySceneBuilder
             data.hitPoint = 0.45f;         // มือปล่อยหินที่เฟรม 15/33 ของท่า Throw
             data.attackAnimSpeed = 1f;
             data.attackAnims = new[] { "Attack1" };
-            data.canBeStunned = true;
-            data.stunTime = 0.4f;
             data.corpseTime = 3f;
             AssetDatabase.CreateAsset(data, SkeletonDataPath);
         }
@@ -317,8 +313,6 @@ public static class EnemySceneBuilder
         data.hitPoint = 0.5f;
         data.attackAnimSpeed = 1f;
         data.attackAnims = new[] { "Attack1" };
-        data.canBeStunned = true;
-        data.stunTime = 0.3f;
         data.corpseTime = 1.2f;
         data.splitInto = splitInto;
         data.splitCount = 2;
@@ -380,8 +374,6 @@ public static class EnemySceneBuilder
             data.hitPoint = 0.53f;         // กำปั้นกระทบพื้นเฟรม 24/45
             data.attackAnimSpeed = 1f;
             data.attackAnims = new[] { "Attack1" };   // ตีปกติ = ทุ่มพื้น (ปาหินสั่งแยกใน GolemEnemy)
-            data.canBeStunned = false;
-            data.stunTime = 0f;
             data.corpseTime = 4f;
             AssetDatabase.CreateAsset(data, GolemDataPath);
         }
@@ -598,8 +590,6 @@ public static class EnemySceneBuilder
             data.hitPoint = 0.6f;
             data.attackAnimSpeed = 0.85f;  // ท่าหนัก ๆ ช้ากว่าของแพ็กนิดนึง
             data.attackAnims = new[] { "Attack1" };
-            data.canBeStunned = false;
-            data.stunTime = 0f;
             data.corpseTime = 6f;
             AssetDatabase.CreateAsset(data, OrcDataPath);
         }

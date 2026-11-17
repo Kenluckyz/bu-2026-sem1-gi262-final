@@ -61,12 +61,9 @@ public static class UpgradeSceneBuilder
         SerializedObject uiSo = new SerializedObject(ui);
         uiSo.FindProperty("player").objectReferenceValue = player;
         uiSo.FindProperty("upgradeManager").objectReferenceValue = manager;
-        uiSo.FindProperty("iconBackground").objectReferenceValue = LoadSprite("circle_slot");
-        uiSo.FindProperty("iconRing").objectReferenceValue = LoadSprite("skill_slot_ring");
-        uiSo.FindProperty("bannerCloth").objectReferenceValue = LoadSprite("upgrade_banner_cloth");
-        uiSo.FindProperty("bannerTrim").objectReferenceValue = LoadSprite("upgrade_banner_trim");
-        uiSo.FindProperty("bannerGlow").objectReferenceValue = LoadSprite("upgrade_banner_glow");
         uiSo.ApplyModifiedPropertiesWithoutUndo();
+        PrepareSprites(); // ตั้งรูปการ์ดให้เป็น Sprite ก่อน
+        GameplayUIBaker.BakeUpgrade(ui); // สร้างการ์ด 3 ใบเป็น object ในซีน
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
@@ -134,6 +131,13 @@ public static class UpgradeSceneBuilder
             AssetDatabase.CreateAsset(data, path);
         }
         return data;
+    }
+
+    // รูปที่การ์ดใช้ ต้องเป็นชนิด Sprite ก่อน GameplayUIBaker จะโหลดได้
+    private static void PrepareSprites()
+    {
+        string[] files = { "circle_slot", "skill_slot_ring", "upgrade_banner_cloth", "upgrade_banner_trim", "upgrade_banner_glow" };
+        for (int i = 0; i < files.Length; i++) LoadSprite(files[i]);
     }
 
     // โหลดรูปจาก Art/UI และตั้งให้เป็น Sprite ถ้ายังไม่ได้ตั้ง (แบบเดียวกับ SceneBuilder)

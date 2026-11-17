@@ -31,19 +31,12 @@ public static class DodgeUISceneBuilder
         DodgeCooldownUI ui = obj.AddComponent<DodgeCooldownUI>();
         SerializedObject so = new SerializedObject(ui);
         so.FindProperty("player").objectReferenceValue = Object.FindAnyObjectByType<Player>();
-        so.FindProperty("slotBackground").objectReferenceValue = LoadSprite("circle_slot");
-        so.FindProperty("slotRing").objectReferenceValue = LoadSprite("skill_slot_ring");
-        so.FindProperty("maskSprite").objectReferenceValue = LoadSprite("circle_white");
         so.ApplyModifiedPropertiesWithoutUndo();
+        GameplayUIBaker.BakeDodge(ui); // สร้างช่องวงกลมใน HUD แล้วผูกกับสคริปต์
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         Selection.activeGameObject = obj;
         Debug.Log("ใส่ช่องคูลดาวน์ Shift ลงซีน Gameplay แล้ว");
-    }
-
-    private static Sprite LoadSprite(string fileName)
-    {
-        return AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Game/Art/UI/" + fileName + ".png");
     }
 }

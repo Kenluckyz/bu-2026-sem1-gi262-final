@@ -42,9 +42,11 @@ public static class BossFXSceneBuilder
         vfx.FindProperty("craterBlast").objectReferenceValue = crater;
         vfx.FindProperty("spearRing").objectReferenceValue = spear;
         vfx.ApplyModifiedPropertiesWithoutUndo();
-        SerializedObject intro = new SerializedObject(obj.AddComponent<BossCutscene>());
+        BossCutscene cutscene = obj.AddComponent<BossCutscene>();
+        SerializedObject intro = new SerializedObject(cutscene);
         intro.FindProperty("summonVFX").objectReferenceValue = summon;
         intro.ApplyModifiedPropertiesWithoutUndo();
+        GameplayUIBaker.BakeBossCutscene(cutscene); // สร้าง UI cutscene เป็น object ในซีน
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);

@@ -36,13 +36,10 @@ public class Enemy : Character
     protected EnemyManager manager;    // EnemyManager ที่สร้างตัวนี้ (สไลม์ใช้เกิดลูก)
     protected CharacterController controller;
     protected bool isAttacking;
-    protected bool isStunned;
     protected float lastAttackTime = -99f;
     protected int level = 1;                // เลเวลของศัตรู = เลเวลผู้เล่นตอนเกิด
     protected float damageMultiplier = 1f;  // ตัวคูณดาเมจตามเลเวล
     private float verticalVelocity;
-    private Coroutine attackRoutine;
-    private Coroutine stunRoutine;
     private Renderer[] renderers;
     private MaterialPropertyBlock flashBlock;
     private float surroundAngle;   // มุมของช่องรอบผู้เล่น (องศา, 0 = ทิศ +Z ของโลก)
@@ -102,7 +99,6 @@ public class Enemy : Character
         base.SetUP(); // ตั้ง currentHP = maxHP (maxHP มาจาก EnemyData แล้ว)
         controller.enabled = true;
         isAttacking = false;
-        isStunned = false;
     }
 
     // คัดค่าจาก EnemyData มาใส่ตัวแปรของ Character
@@ -126,8 +122,8 @@ public class Enemy : Character
     {
         if (!isAlive) return;
 
-        // ไม่มีเป้าหมาย / ผู้เล่นตาย / กำลังตี / ชะงัก = ยืนเฉย ๆ
-        if (data == null || target == null || !target.IsAlive || isAttacking || isStunned)
+        // ไม่มีเป้าหมาย / ผู้เล่นตาย / กำลังตี = ยืนเฉย ๆ
+        if (data == null || target == null || !target.IsAlive || isAttacking)
         {
             Move(Vector3.zero);
             return;
@@ -180,7 +176,7 @@ public class Enemy : Character
     public virtual void Attack()
     {
         if (isAttacking || !isAlive) return;
-        attackRoutine = StartCoroutine(AttackRoutine());
+        StartCoroutine(AttackRoutine());
     }
 
     // ง้าง -> ฟันโดน (hitPoint) -> คืนท่า — หลักเดียวกับ ComboAttack ของ Player
@@ -204,7 +200,6 @@ public class Enemy : Character
         yield return new WaitForSeconds(length * (1f - data.hitPoint) * 0.9f);
 
         isAttacking = false;
-        attackRoutine = null;
         lastAttackTime = Time.time; // คูลดาวน์นับจากตีจบ
         ReturnToMove();
     }
@@ -230,29 +225,11 @@ public class Enemy : Character
         base.TakeDamage(damage);
         if (!isAlive) return; // ตายแล้ว Die() จัดการต่อ
 
+        // โดนตีแล้วแค่กะพริบแดง ไม่ชะงัก (ศัตรูตีต่อได้เลย)
         StartCoroutine(FlashHit());
-        if (data != null && data.canBeStunned)
-        {
-            // ยกเลิกท่าตีที่ง้างอยู่ แล้วเล่นท่าโดนตี
-            if (attackRoutine != null) StopCoroutine(attackRoutine);
-            attackRoutine = null;
-            isAttacking = false;
-            if (stunRoutine != null) StopCoroutine(stunRoutine);
-            stunRoutine = StartCoroutine(StunRoutine());
-        }
     }
 
-    private IEnumerator StunRoutine()
-    {
-        isStunned = true;
-        if (animator != null) animator.CrossFadeInFixedTime("Hit", 0.05f, 0, 0f);
-        yield return new WaitForSeconds(data.stunTime);
-        isStunned = false;
-        stunRoutine = null;
-        ReturnToMove();
-    }
-
-    // กลับไปท่าเดิน/ยืน (Blend Tree "Move") ทันที ไม่ต้องรอท่าตี/ท่าโดนตีเล่นจนจบ ตัวจะได้ไม่ไถลตอนเริ่มเดิน
+    // กลับไปท่าเดิน/ยืน (Blend Tree "Move") ทันที ไม่ต้องรอท่าตีเล่นจนจบ ตัวจะได้ไม่ไถลตอนเริ่มเดิน
     protected void ReturnToMove()
     {
         if (animator != null && isAlive) animator.CrossFadeInFixedTime("Move", 0.15f, 0);
@@ -289,7 +266,6 @@ public class Enemy : Character
         StopAllCoroutines();
         SetFlash(false, Color.white);
         isAttacking = false;
-        isStunned = false;
 
         base.Die(); // แจ้ง OnDied -> EnemyManager นับศัตรูที่เหลือ
         if (animator != null)

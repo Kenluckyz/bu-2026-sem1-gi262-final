@@ -10,7 +10,6 @@ public class Room : MonoBehaviour
 {
     [Header("Room")]
     public int roomId;
-    public string roomName = "Room";
     public bool isBossRoom;
     [Tooltip("ขนาดครึ่งหนึ่งของพื้นที่ (x = กว้าง, y = ลึก) วัดจากตัว Room ใช้เช็กว่าผู้เล่นเดินเข้ามาแล้ว")]
     public Vector2 enterHalfSize = new Vector2(7f, 6f);
@@ -52,7 +51,6 @@ public class Room : MonoBehaviour
     public Material IndicatorMaterial => indicatorMaterial;
     public bool IsStarted => isStarted;
     public bool IsCleared => isCleared;
-    public Enemy Boss => boss;
     public int CurrentWaveNumber => currentWaveIndex + 1;
     public int WaveCount => isBossRoom ? 1 : waves.Count;
 
@@ -77,7 +75,7 @@ public class Room : MonoBehaviour
     {
         if (isStarted) return;
         isStarted = true;
-        Debug.Log("[Room] เข้าห้อง " + roomId + " : " + roomName);
+        Debug.Log("[Room] เข้าห้อง " + roomId);
         StartNextWave();
     }
 
@@ -161,7 +159,7 @@ public class Room : MonoBehaviour
     private void Clear()
     {
         isCleared = true;
-        Debug.Log("[Room] ผ่านห้อง " + roomName);
+        Debug.Log("[Room] ผ่านห้อง " + roomId);
         OpenDoor();
         OnCleared?.Invoke(this);
     }
@@ -169,7 +167,7 @@ public class Room : MonoBehaviour
     public void OpenDoor()
     {
         // ประตูเลื่อนลงเองใน UpdateGates()
-        Debug.Log("[Room] เปิดประตู " + roomName);
+        Debug.Log("[Room] เปิดประตู ห้อง " + roomId);
     }
 
     #region Gates

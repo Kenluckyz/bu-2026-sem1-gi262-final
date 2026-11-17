@@ -33,7 +33,7 @@ public class Wave
     {
         hasStarted = true;
         pendingCount = enemiesToSpawn.Count;
-        Debug.Log("[Wave] " + room.roomName + " เวฟ " + waveNumber + " : ศัตรู " + enemiesToSpawn.Count + " ตัว");
+        Debug.Log("[Wave] ห้อง " + room.roomId + " เวฟ " + waveNumber + " : ศัตรู " + enemiesToSpawn.Count + " ตัว");
 
         // 1. เรียงจุดเกิดจากใกล้ผู้เล่นไปไกล (ศัตรูโผล่ในจอ เห็นวงเตือนก่อน)
         List<Vector3> ordered = SortByDistance(room.Player);

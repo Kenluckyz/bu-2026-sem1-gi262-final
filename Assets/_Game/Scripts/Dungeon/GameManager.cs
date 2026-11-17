@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        hud.SetUP(this, dungeon, enemyManager);
+        hud.SetUP(dungeon, enemyManager);
         player.OnDied += HandlePlayerDied;
         dungeon.OnDungeonCleared += HandleDungeonCleared;
         dungeon.OnBossSpawned += HandleBossSpawned;
@@ -91,57 +91,7 @@ public class GameManager : MonoBehaviour
         {
             Restart();
         }
-#if UNITY_EDITOR
-        DebugKeys(keyboard);
-#endif
     }
-
-#if UNITY_EDITOR
-    private bool godMode;
-
-    private void DebugKeys(Keyboard keyboard)
-    {
-        if (gameState != GameState.Playing) return;
-        if (keyboard.f8Key.wasPressedThisFrame)
-        {
-            godMode = !godMode;
-            Debug.Log("[Debug] God Mode : " + godMode);
-        }
-        if (godMode && player.IsAlive) player.Heal(player.MaxHP);
-        if (keyboard.f7Key.wasPressedThisFrame || keyboard.lKey.wasPressedThisFrame)
-        {
-            // F7 หรือ L = เลเวลอัป 1 ครั้ง (ไว้ดูศัตรูเก่งขึ้นตามเลเวล)
-            player.Stats.AddExp(player.Stats.ExpToNextLevel - player.Stats.Exp);
-            Debug.Log("[Debug] ผู้เล่นเลเวล " + player.Stats.Level + " -> ศัตรูที่เกิดใหม่เลเวล " + enemyManager.GetEnemyLevel());
-        }
-        if (keyboard.f9Key.wasPressedThisFrame)
-        {
-            // ห้องบอส: ฆ่าทุกตัวยกเว้นบอส (ไว้ทดสอบสกิลเสกก็อบลิน) / ห้องอื่น: ฆ่าหมด
-            Enemy keep = dungeon.CurrentRoom != null ? dungeon.CurrentRoom.Boss : null;
-            Debug.Log("[Debug] ฆ่าศัตรูทั้งหมด" + (keep != null ? " (ยกเว้นบอส)" : ""));
-            StartCoroutine(KillRemainingEnemies(keep));
-        }
-        if (keyboard.f11Key.wasPressedThisFrame && dungeon.CurrentRoom != null && dungeon.CurrentRoom.Boss != null)
-        {
-            Enemy boss = dungeon.CurrentRoom.Boss;
-            boss.TakeDamage(boss.MaxHP * 0.2f);
-            Debug.Log("[Debug] บอสเลือดเหลือ " + boss.CurrentHP + "/" + boss.MaxHP);
-        }
-        if (keyboard.f10Key.wasPressedThisFrame)
-        {
-            Room next = dungeon.GetRoom(dungeon.CurrentRoomIndex + 1);
-            if (dungeon.CurrentRoom != null && dungeon.CurrentRoom.IsCleared && next != null)
-            {
-                Vector3 target = next.transform.position + new Vector3(0f, 0.2f, -next.enterHalfSize.y + 1.5f);
-                CharacterController cc = player.GetComponent<CharacterController>();
-                cc.enabled = false;
-                player.transform.position = target;
-                cc.enabled = true;
-                Debug.Log("[Debug] วาร์ปไป " + next.roomName);
-            }
-        }
-    }
-#endif
 
     public void TogglePause()
     {
@@ -227,21 +177,16 @@ public class GameManager : MonoBehaviour
             victoryScreen.SetActive(true);
     }
 
+    // ชนะแล้วฆ่าศัตรูที่เหลือ (วนหลายเฟรม เพราะสไลม์ที่แตกตัวเกิดเฟรมถัดไป)
     private IEnumerator KillRemainingEnemies()
     {
-        return KillRemainingEnemies(null);
-    }
-
-    // Overload: ไม่ฆ่าตัว keep (เช่น บอส)
-    private IEnumerator KillRemainingEnemies(Enemy keep)
-    {
-        for (int pass = 0; pass < 10 && enemyManager.GetAliveCount() > (keep != null ? 1 : 0); pass++)
+        for (int pass = 0; pass < 10 && enemyManager.GetAliveCount() > 0; pass++)
         {
             Enemy[] alive = new Enemy[enemyManager.AliveEnemies.Count];
             for (int i = 0; i < alive.Length; i++) alive[i] = enemyManager.AliveEnemies[i];
             for (int i = 0; i < alive.Length; i++)
             {
-                if (alive[i] != null && alive[i].IsAlive && alive[i] != keep) alive[i].TakeDamage(alive[i].MaxHP * 10f);
+                if (alive[i] != null && alive[i].IsAlive) alive[i].TakeDamage(alive[i].MaxHP * 10f);
             }
             yield return null;
         }

@@ -37,7 +37,7 @@ public class GolemEnemy : Enemy
         if (!isAlive) return;
 
         // 1. กำลังทำท่าอยู่ / ไม่มีเป้า ให้ Enemy จัดการ
-        if (data == null || target == null || !target.IsAlive || isAttacking || isStunned)
+        if (data == null || target == null || !target.IsAlive || isAttacking)
         {
             base.Update();
             return;

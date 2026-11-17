@@ -27,8 +27,8 @@ public class SkeletonEnemy : Enemy
     {
         if (!isAlive) return;
 
-        // 1. กำลังปา / ชะงัก / ไม่มีเป้า ให้ Enemy จัดการตามปกติ
-        if (data == null || target == null || !target.IsAlive || isAttacking || isStunned)
+        // 1. กำลังปา / ไม่มีเป้า ให้ Enemy จัดการตามปกติ
+        if (data == null || target == null || !target.IsAlive || isAttacking)
         {
             base.Update();
             return;

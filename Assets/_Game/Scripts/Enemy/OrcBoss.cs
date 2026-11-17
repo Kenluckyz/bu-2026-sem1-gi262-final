@@ -137,7 +137,7 @@ public class OrcBoss : Enemy
             return;
         }
 
-        if (data == null || target == null || !target.IsAlive || isStunned)
+        if (data == null || target == null || !target.IsAlive)
         {
             base.Update();
             return;

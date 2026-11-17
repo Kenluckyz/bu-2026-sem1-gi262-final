@@ -2,117 +2,28 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // ช่องคูลดาวน์ Shift หน้าตาเหมือนช่องสกิล
-// สร้างด้วยโค้ดใส่ใน HUD
+// ตัวช่องอยู่ในซีนแล้ว (HUD > DodgeSlot) ปิดอยู่ ถ้าอยากโชว์ให้ติ๊ก DodgeSlot ใน Hierarchy
+// สคริปต์นี้แค่หมุนวงคูลดาวน์กับตัวเลข
 public class DodgeCooldownUI : MonoBehaviour
 {
     [SerializeField] private Player player;
-    [SerializeField] private Sprite slotBackground;
-    [SerializeField] private Sprite slotRing;
-    [SerializeField] private Sprite maskSprite;
-    [SerializeField] private Vector2 position = new Vector2(250f, 54f); // ถัดจากช่อง 3
-    [SerializeField] private float size = 96f;
-    [SerializeField] private bool showSlotOnScreen = false; // ติ๊กถ้าจะโชว์วง
-    private bool showSlot => showSlotOnScreen;
-
-    private Image mask;
-    private Text cooldownText;
-    private Text label;
-    private bool hintAdded;
+    [SerializeField] private Image mask;        // วงมืดแบบ Filled Radial 360
+    [SerializeField] private Text cooldownText; // ตัวเลขวินาทีที่เหลือ
+    [SerializeField] private Text label;        // คำว่า DODGE ตอนพร้อมกด
 
     private void Start()
     {
         if (player == null) player = FindAnyObjectByType<Player>();
-        GameObject hud = GameObject.Find("HUD");
-        if (player == null || hud == null)
-        {
-            Debug.LogWarning("DodgeCooldownUI: ไม่พบ Player หรือ Canvas HUD");
-            return;
-        }
-        if (showSlot) Build(hud.transform); // ตอนนี้ปิดไว้ เหลือแค่ป้ายมุมซ้าย
+        if (player == null) Debug.LogWarning("DodgeCooldownUI: ไม่พบ Player");
     }
 
     private void Update()
     {
-        if (!hintAdded) AddControlHint();
-        if (mask == null) return;
+        // ไม่มีช่อง / ช่องปิดอยู่ = ไม่ต้องทำอะไร
+        if (player == null || mask == null || !mask.gameObject.activeInHierarchy) return;
         float remaining = player.DodgeCooldownRemaining;
         mask.fillAmount = player.DodgeCooldown > 0f ? remaining / player.DodgeCooldown : 0f;
         cooldownText.text = remaining > 0f ? remaining.ToString("0.0") : "";
         label.enabled = remaining <= 0f; // พร้อมกดโชว์ DODGE
-    }
-
-    // ต่อคำว่า Shift Dash ที่ป้ายมุมซ้ายล่าง ไม่ได้แก้สคริปต์เพื่อน
-    private void AddControlHint()
-    {
-        Text[] texts = FindObjectsByType<Text>(FindObjectsSortMode.None);
-        for (int i = 0; i < texts.Length; i++)
-        {
-            if (!texts[i].text.Contains("LMB")) continue;
-            if (!texts[i].text.Contains("Shift")) texts[i].text += "     Shift  Dash";
-            hintAdded = true;
-            return;
-        }
-    }
-
-    private void Build(Transform hud)
-    {
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        GameObject slot = new GameObject("DodgeSlot", typeof(RectTransform));
-        slot.transform.SetParent(hud, false);
-        RectTransform rt = slot.GetComponent<RectTransform>();
-        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
-        rt.pivot = new Vector2(0.5f, 0f);
-        rt.anchoredPosition = position;
-        rt.sizeDelta = new Vector2(size, size);
-
-        Image bg = MakeImage(slot.transform, "BG", slotBackground, 0.86f);
-        bg.color = new Color(0.2f, 0.35f, 0.5f);
-        label = MakeText(slot.transform, "Label", font, 18, new Color(0.75f, 0.92f, 1f));
-        label.text = "DODGE";
-        mask = MakeImage(slot.transform, "Cooldown", maskSprite, 0.86f);
-        mask.color = new Color(0f, 0f, 0f, 0.6f);
-        mask.type = Image.Type.Filled;
-        mask.fillMethod = Image.FillMethod.Radial360;
-        mask.fillOrigin = (int)Image.Origin360.Top;
-        mask.fillClockwise = false;
-        mask.fillAmount = 0f;
-        cooldownText = MakeText(slot.transform, "CooldownText", font, 26, Color.white);
-        MakeImage(slot.transform, "Ring", slotRing, 1f);
-
-        Text key = MakeText(slot.transform, "Key", font, 18, Color.white);
-        key.text = "Shift";
-        key.rectTransform.anchorMin = key.rectTransform.anchorMax = new Vector2(0.5f, 0f);
-        key.rectTransform.anchoredPosition = new Vector2(0f, -14f);
-        key.rectTransform.sizeDelta = new Vector2(80f, 26f);
-    }
-
-    private Image MakeImage(Transform parent, string objName, Sprite sprite, float scale)
-    {
-        GameObject obj = new GameObject(objName, typeof(RectTransform), typeof(Image));
-        obj.transform.SetParent(parent, false);
-        RectTransform rt = obj.GetComponent<RectTransform>();
-        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-        rt.sizeDelta = new Vector2(size * scale, size * scale);
-        Image img = obj.GetComponent<Image>();
-        img.sprite = sprite;
-        img.raycastTarget = false;
-        return img;
-    }
-
-    private Text MakeText(Transform parent, string objName, Font font, int fontSize, Color color)
-    {
-        GameObject obj = new GameObject(objName, typeof(RectTransform), typeof(Text));
-        obj.transform.SetParent(parent, false);
-        RectTransform rt = obj.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(size, size);
-        Text text = obj.GetComponent<Text>();
-        text.font = font;
-        text.fontSize = fontSize;
-        text.fontStyle = FontStyle.Bold;
-        text.color = color;
-        text.alignment = TextAnchor.MiddleCenter;
-        text.raycastTarget = false;
-        text.gameObject.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.8f);
-        return text;
     }
 }

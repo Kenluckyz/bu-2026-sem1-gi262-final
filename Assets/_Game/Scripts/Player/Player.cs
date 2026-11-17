@@ -348,15 +348,6 @@ public class Player : Character
         return false;
     }
 
-    public void PrintSkills()
-    {
-        Debug.Log("--- Skills ---");
-        foreach (KeyValuePair<string, Skill> entry in skills)
-        {
-            Debug.Log(entry.Key + " Lv." + entry.Value.Level);
-        }
-    }
-
     // เพิ่ม stat ใช้ตอนเลือกการ์ด
     // เลเวลอัป: เลือดสูงสุด + เลือดตอนนี้ เพิ่ม hpPerLevel
     private void HandleLevelUp(int newLevel)
@@ -450,7 +441,6 @@ public class Player : Character
         if (keyboard.digit1Key.wasPressedThisFrame) UseSkillSlot(0);
         if (keyboard.digit2Key.wasPressedThisFrame) UseSkillSlot(1);
         if (keyboard.digit3Key.wasPressedThisFrame) UseSkillSlot(2);
-        if (keyboard.pKey.wasPressedThisFrame) PrintSkills();
         if (keyboard.leftShiftKey.wasPressedThisFrame || keyboard.rightShiftKey.wasPressedThisFrame) Dodge();
     }
     #endregion
