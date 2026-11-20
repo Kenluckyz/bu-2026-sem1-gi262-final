@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Player สืบทอดจาก Character
+// Player คือตัวละครที่ผู้เล่นควบคุม และสืบทอดระบบเลือดกับการตายจาก Character
 [RequireComponent(typeof(CharacterController))]
 public class Player : Character
 {
     [Header("Player")]
-    [SerializeField] private float turnSpeed = 720f; // หันตัว องศา/วิ
-    [SerializeField] private float gravity = -20f;
+    [SerializeField] private float turnSpeed = 720f; // ความเร็วในการหันหน้าเข้าหาทิศที่เดิน
+    [SerializeField] private float gravity = -20f; // แรงโน้มถ่วงที่ใช้ดึงตัวละครลงพื้น
 
     [Header("Model")]
-    [SerializeField] private Animator animator;
+    [SerializeField] private Animator animator; // Animator ที่ใช้ควบคุมท่าเดิน โจมตี และใช้สกิล
 
     [Header("Stats")]
-    [SerializeField] private PlayerStats stats = new PlayerStats();
+    [SerializeField] private PlayerStats stats = new PlayerStats(); // เก็บข้อมูลเลเวล EXP และพลังโจมตีของผู้เล่น
     public PlayerStats Stats => stats;
 
     [Header("Attack")]
@@ -29,9 +29,9 @@ public class Player : Character
     // hitPoint = ตอนหมัดโดน, chainPoint = ตอนต่อท่าถัดไปได้ (เป็นสัดส่วนของท่า)
     [SerializeField] private float[] hitPoint = { 0.35f, 0.4f, 0.45f };
     [SerializeField] private float[] chainPoint = { 0.65f, 0.65f, 0.85f };
-    [SerializeField] private float clickBufferTime = 0.6f; // คลิกเก่าเกินนี้ไม่เอา
+    [SerializeField] private float clickBufferTime = 0.6f; // เวลาที่เก็บคลิกโจมตีไว้รอต่อคอมโบ
     [SerializeField] private float attackMoveMultiplier = 0.9f; // ต่อยไปเดินไปได้ ช้าลงนิดเดียว
-    // คิวคลิกต่อย ใช้ Queue เหมือน autoMoveQueue
+    // เก็บเวลาที่กดโจมตีไว้ เพื่อให้กดต่อเนื่องแล้วเล่นคอมโบตามลำดับ
     private Queue<float> comboQueue = new Queue<float>();
     private int comboStep; // 0,1,2 = ท่า 1,2,3
     private float lastComboEndTime = -99f;
@@ -44,32 +44,32 @@ public class Player : Character
     private bool isAttacking;
 
     [Header("Skills")]
-    [SerializeField] private List<SkillData> startingSkills = new List<SkillData>(); // สกิลเริ่มต้น ไว้เทส
+    [SerializeField] private List<SkillData> startingSkills = new List<SkillData>(); // สกิลตอนเริ่ม เรียงตามปุ่ม 1 2 3
     // เก็บสกิล ใช้ Dictionary แบบ Inventory
     private Dictionary<string, Skill> skills = new Dictionary<string, Skill>();
-    // ช่องสกิลปุ่ม 1 2 3
+    // ช่องสกิลปุ่ม 1 2 3 เรียงตามลำดับที่ได้สกิล
     private List<Skill> skillSlots = new List<Skill>();
     public IReadOnlyList<Skill> SkillSlots => skillSlots;
     public IEnumerable<Skill> Skills => skills.Values;
     public event System.Action OnSkillsChanged;
 
     [Header("Dash")]
-    [SerializeField] private float dashSpeed = 12f;
+    [SerializeField] private float dashSpeed = 12f; // ความเร็วในการพุ่ง
     [SerializeField] private float dashTime = 0.35f; // เวลาพุ่ง
-    private bool isDashing;
+    private bool isDashing; // ดูว่าตอนนี้ Player พุ่งยุมั้ย
 
     [Header("Dodge (Shift)")]
-    [SerializeField] private float dodgeCooldownTime = 4f; // Shift หลบ ไม่มีดาเมจ
+    [SerializeField] private float dodgeCooldownTime = 4f; // เวลาคูลดาวน์ของ Shift เพื่อหลบ
     private float lastDodgeTime = -99f;
     public float DodgeCooldown => dodgeCooldownTime;
     public float DodgeCooldownRemaining => Mathf.Max(0f, dodgeCooldownTime - (Time.time - lastDodgeTime));
     [SerializeField] private Color afterImageColor = new Color(0.45f, 0.8f, 1f, 0.3f); // สีเงา
     [SerializeField] private float afterImageInterval = 0.08f; // เว้นกี่วิทิ้งเงา 1 อัน
     [SerializeField] private float afterImageLife = 0.25f; // เงาหายในกี่วิ
-    private bool isCasting; // กำลังใช้สกิลอยู่
+    private bool isCasting; // เช็กว่ากำลังอยู่ระหว่างใช้สกิลมั้ย
 
     [Header("Level Up")]
-    [SerializeField] private float hpPerLevel = 25f; // เลเวลอัปแล้วเลือดเพิ่มเท่านี้
+    [SerializeField] private float hpPerLevel = 25f; // จำนวนเลือดสูงสุดที่จะเพิ่มเมื่อเลเวลอัป
 
     [Header("Hurt")]
     [SerializeField] private float invincibleTime = 0.6f; // โดนแล้วอมตะแป๊บนึง กันโดนรัว
@@ -78,43 +78,46 @@ public class Player : Character
     public override void TakeDamage(float damage)
     {
         if (isDashing) return; // พุ่งอยู่ไม่โดน
-        if (Time.time - lastHurtTime < invincibleTime) return;
+        if (Time.time - lastHurtTime < invincibleTime) return;// ถ้ายังอยู่ในช่วงอมตะ จะไม่รับดาเมจซ้ำ
         lastHurtTime = Time.time;
         base.TakeDamage(damage);
         // ไม่เล่นท่าโดนตี (Hit) — Boat ไม่ชะงักเวลาโดนศัตรูตี เดิน/ต่อย/ใช้สกิลต่อได้เลย
     }
 
+    // เตรียมค่าต่าง ๆ ของ Player ตอนเริ่มเกม
     public override void SetUP()
     {
-        base.SetUP();
+        base.SetUP(); // เรียกการตั้งค่าเริ่มต้นจาก Character เช่น เติมเลือดและกำหนดสถานะมีชีวิต
         controller = GetComponent<CharacterController>();
-        // เอา action มาแบบ OOPPlayer
+        // เอา Input Action สำหรับปุ่มเดินและปุ่มโจมตี
         moveAction = InputSystem.actions.FindAction("Move");
         if (moveAction == null)
         {
             Debug.LogError("ไม่พบ Input Action ชื่อ Move");
         }
         attackAction = InputSystem.actions.FindAction("Attack");
-        stats.Refresh();
+        stats.Refresh(); // อัปเดตข้อมูลเริ่มต้นของเลเวลและ EXP
         // เลเวลอัปแล้วเลือดเพิ่ม (ถอดก่อนใส่ กันโดนเรียก 2 รอบ)
         stats.OnLevelUp -= HandleLevelUp;
         stats.OnLevelUp += HandleLevelUp;
 
+        // เพิ่มสกิลเริ่มต้นให้ Player ตามรายการใน Inspector
         for (int i = 0; i < startingSkills.Count; i++)
         {
             AddSkill(startingSkills[i]);
         }
     }
 
+    // ตรวจการควบคุมและอัปเดตการทำงานของ Player ทุกเฟรม
     private void Update()
     {
         if (!isAlive || moveAction == null) return;
 
-        UpdateSkillInput();
-        if (isDashing) return; // ตอนพุ่งให้ coroutine คุมเอง
+        UpdateSkillInput(); // ตรวจปุ่มใช้สกิลและปุ่มหลบ
+        if (isDashing) return; // ระหว่างพุ่ง ให้ DashRoutine ควบคุมการเคลื่อนที่แทน
         if (isCasting)
         {
-            Move(Vector2.zero); // ใช้สกิลอยู่ยืนนิ่ง
+            Move(Vector2.zero); // ใช้สกิลอยู่ยืนนิ่ง จะกดเดินไม่ได้
             return;
         }
 
@@ -138,7 +141,7 @@ public class Player : Character
         }
     }
 
-    // ต่อย 1 ท่า ง้าง > ตี > ค้าง > คืนท่า
+    // เล่นคอมโบหนึ่งท่า และกำหนดจังหวะที่ดาเมจจะออก
     private IEnumerator ComboAttack()
     {
         if (Time.time - lastComboEndTime > comboResetTime)
@@ -148,15 +151,15 @@ public class Player : Character
         int step = comboStep;
         isAttacking = true;
 
-        // ความยาวท่า
+        // ใช้ความยาว Animation เป็นเวลาของท่าโจมตี
         float length = windUpTime / hitPoint[step];
         if (animator != null)
         {
-            // ใช้ CrossFade ตรงๆ ไม่ใช้ trigger เพราะกดรัวแล้วท่ารีเซ็ต
+            // เลือก Animation ตามลำดับคอมโบ เช่น Combo1, Combo2 และ Combo3
             string stateName = "Combo" + (step + 1);
             // layer 1 = ตัวบน ขาเดินได้
             animator.CrossFadeInFixedTime(stateName, 0.05f, 1, 0f);
-            yield return null; // รอ 1 เฟรม
+            yield return null; // รอให้ Animator เริ่มเปลี่ยนท่าก่อนอ่านข้อมูล Animation
             AnimatorStateInfo info = animator.GetNextAnimatorStateInfo(1);
             if (!info.IsName(stateName)) info = animator.GetCurrentAnimatorStateInfo(1);
             if (info.length > 0.05f) length = info.length;
@@ -171,10 +174,10 @@ public class Player : Character
         isAttacking = false;
     }
 
-    // Dash ให้ DashStrikeSkill เรียก
+    // เริ่มการพุ่ง โดยรับค่าดาเมจและรัศมีโจมตีจากสกิลที่เรียกใช้
     public void Dash(float damage, float hitRadius)
     {
-        if (isDashing) return;
+        if (isDashing) return; // ถ้ากำลังพุ่งอยู่ จะไม่เริ่มการพุ่งซ้ำ
         if (isAttacking)
         {
             // กดพุ่งตอนต่อยอยู่ ยกเลิกต่อย
@@ -246,6 +249,7 @@ public class Player : Character
         if (animator != null) animator.CrossFadeInFixedTime("Idle", 0.1f, 0);
     }
 
+    // เรียกโจมตีด้วยดาเมจปกติ 1 เท่า
     public void Attack()
     {
         Attack(1f);
@@ -255,11 +259,11 @@ public class Player : Character
     public void Attack(float damageMultiplier)
     {
         Vector3 center = transform.position + transform.forward * attackRange;
-        Collider[] hits = Physics.OverlapSphere(center, attackRadius);
+        Collider[] hits = Physics.OverlapSphere(center, attackRadius); // ตรวจ Collider ทุกตัวที่อยู่ในรัศมีโจมตี
         for (int i = 0; i < hits.Length; i++)
         {
             Character target = hits[i].GetComponent<Character>();
-            if (target != null && target != this && target.IsAlive)
+            if (target != null && target != this && target.IsAlive) // โจมตีเฉพาะ Character ตัวอื่นที่ยังมีชีวิตอยู่
             {
                 DealDamage(target, stats.Damage * damageMultiplier);
             }
@@ -279,7 +283,7 @@ public class Player : Character
         target.TakeDamage(amount * (1f + bonusDamage));
         if (!target.IsAlive)
         {
-            stats.AddExp(target.ExpReward);
+            stats.AddExp(target.ExpReward);  // ถ้าเป้าหมายตาย จะได้รับ EXP ตามค่ารางวัลของเป้าหมาย
         }
     }
 
@@ -300,34 +304,36 @@ public class Player : Character
     }
 
     #region Skill
-    // เหมือน AddItem ใน Inventory week4
+    // เพิ่มสกิลให้ Player ถ้ามีสกิลเดิมอยู่แล้วจะเพิ่มเลเวลแทน
     public void AddSkill(SkillData skillData)
     {
         if (skillData == null) return;
 
-        // 1. มีสกิลนี้ยัง
+        // ถ้ามีสกิลนี้อยู่แล้ว ให้เพิ่มเลเวลสกิลเดิม
         if (skills.ContainsKey(skillData.skillName))
         {
             skills[skillData.skillName].LevelUp(this);
         }
         else
         {
-            // ยังไม่มีก็สร้างใหม่ใส่ Dictionary
+            // ถ้ายังไม่มี ให้สร้างสกิลใหม่และเก็บไว้ในรายการสกิลของ Player
             Skill newSkill = skillData.CreateSkill();
             skills.Add(skillData.skillName, newSkill);
             newSkill.OnAdded(this);
-            skillSlots.Add(newSkill);
-            VFXManager.Prewarm(skillData.vfxPrefab, transform.position); // โหลดเอฟเฟกต์ไว้ก่อน กันกระตุก
+            skillSlots.Add(newSkill);// เพิ่มสกิลลงช่องที่ใช้กดปุ่ม 1, 2 หรือ 3
+            VFXManager.Prewarm(skillData.vfxPrefab, transform.position); // เตรียม VFX ไว้ล่วงหน้า เพื่อลดอาการกระตุกตอนใช้สกิล
             Debug.Log("Got new skill " + skillData.skillName);
         }
-        OnSkillsChanged?.Invoke();
+        OnSkillsChanged?.Invoke();// แจ้ง UI ให้อัปเดตช่องสกิล
     }
 
+    // ตรวจว่า Player มีสกิลตามชื่อนี้หรือไม่
     public bool HasSkill(string skillName)
     {
         return skills.ContainsKey(skillName);
     }
 
+    // คืนค่าเลเวลของสกิล ถ้ายังไม่มีสกิลนี้จะคืนค่า 0
     public int GetSkillLevel(string skillName)
     {
         if (skills.ContainsKey(skillName))
@@ -337,7 +343,7 @@ public class Player : Character
         return 0;
     }
 
-    // skill tree ได้สกิลนี้ถ้าเป็นสกิลเริ่ม หรือสกิลที่มีชี้มา
+    // ดูว่าสกิลนี้เลือกได้มั้ย ดูว่าเป็นสกิลเริ่มต้นหรือเป็นสกิลต่อยอดจากสกิลที่มีอยู่
     public bool IsSkillAvailable(SkillData skillData)
     {
         if (skillData.isStartAvailable) return true;
@@ -348,7 +354,6 @@ public class Player : Character
         return false;
     }
 
-    // เพิ่ม stat ใช้ตอนเลือกการ์ด
     // เลเวลอัป: เลือดสูงสุด + เลือดตอนนี้ เพิ่ม hpPerLevel
     private void HandleLevelUp(int newLevel)
     {
@@ -356,14 +361,16 @@ public class Player : Character
         Debug.Log("Level " + newLevel + " : เลือดสูงสุด +" + hpPerLevel + " = " + maxHP);
     }
 
+    // เพิ่ม stat ใช้ตอนเลือกการ์ด
+    // stat ใหม่ เพิ่มใน StatType แล้วมาเพิ่ม case นี้
     public void ApplyStatBoost(StatType type, float value, bool isPercent)
     {
         switch (type)
         {
             case StatType.MaxHP:
-                float addHP = isPercent ? maxHP * value : value;
+                float addHP = isPercent ? maxHP * value : value; // คำนวณจำนวนเลือดที่จะเพิ่ม ลือกได้ว่าเป็นเปอร์เซ็นต์หรือค่าคงที่
                 maxHP += addHP;
-                currentHP += addHP;
+                currentHP += addHP; // เพิ่มเลือดปัจจุบันตามไปด้วย ให้เลือดที่เพิ่มมาใช้งานได้ทันที
                 RaiseHPChanged();
                 break;
             case StatType.Damage:
@@ -376,13 +383,13 @@ public class Player : Character
         Debug.Log("Stat boost " + type + " +" + value + (isPercent ? " (x%)" : ""));
     }
 
-    // passive กดไม่ได้
+    // ใช้สกิล ช่องนี้จะใช้ได้เฉพาะActiveSkill
     private void UseSkillSlot(int index)
     {
         if (index >= skillSlots.Count || isCasting) return;
         if (skillSlots[index] is ActiveSkill active)
         {
-            active.TryActivate(this);
+            active.TryActivate(this); // ส่งคำสั่งไปให้สกิลตรวจสอบคูลดาวน์และเริ่มทำงาน
         }
     }
 

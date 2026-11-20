@@ -1,56 +1,67 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// ประเภทของสกิล แบ่งเป็นสกิลกดใช้กับสกิลติดตัว
 public enum SkillKind { Active, Passive }
+
+// เลือกว่าสกิลนี้จะมีรูปแบบการทำงานแบบไหน
+// ถ้าสร้างสกิลรูปแบบใหม่ ต้องเพิ่มชื่อไว้ตรงนี้ด้วย
 public enum SkillEffect { SpinPunch, FireStorm, StatBoost, DashStrike, OverPunch, FinalExecution, MetalHeart }
+
+// ประเภทค่าสถานะที่สกิลสามารถเพิ่มให้ผู้เล่นได้
 public enum StatType { MaxHP, Damage, MoveSpeed }
 
-// ข้อมูลสกิล เก็บเป็นไฟล์ เพิ่มสกิลไม่ต้องแก้โค้ด
+// เก็บข้อมูลของสกิลแต่ละตัว สร้างไฟล์ข้อมูลสกิลใหม่ผ่าน Unity ได้
+// ตัวเลขข้างล่างเป็นแค่ค่าเริ่มต้น ค่าจริงแก้ในไฟล์ของสกิลนั้น (Data/Skills/Dash.asset ฯลฯ)
 [CreateAssetMenu(fileName = "SkillData", menuName = "BoatVsBoss/Skill Data")]
 public class SkillData : ScriptableObject
 {
-    public string skillName = "Skill";
-    [TextArea] public string description;
-    public Sprite icon;
-    public SkillKind kind;
-    public SkillEffect effect;
+    public string skillName = "Skill"; // ชื่อสกิล ใช้เป็น key ใน Dictionary ห้ามซ้ำกัน
+    [TextArea] public string description; // คำอธิบายสกิล
+    public Sprite icon; // รูปไอคอนของสกิล
+    public SkillKind kind; // ใช้โชว์บนการ์ดว่าเป็นดาเมจหรือโบนัส % (สกิลจะกดหรือติดตัวดูที่ effect)
+    public SkillEffect effect; // เลือกรูปแบบการทำงานของสกิล
 
     [Header("Level")]
-    public int maxLevel = 5;
-    public float baseValue = 10f; // ค่าเลเวล 1
-    public float valuePerLevel = 5f; // เพิ่มต่อเลเวล
+    public int maxLevel = 5; // เลเวลสูงสุดของสกิล
+    public float baseValue = 10f; // ค่าพลังเริ่มต้นของสกิลตอนเลเวล 1
+    public float valuePerLevel = 5f; // ค่าพลังที่เพิ่มขึ้นเมื่ออัปสกิลแต่ละเลเวล
 
     [Header("Active")]
-    public float cooldown = 3f;
-    public float radius = 3f;
-    public int targetCount = 3;
-    public float coneAngle = 90f; // มุมกรวย (ไม่ได้ใช้แล้ว)
-    public float hitWidth = 2.4f; // ความกว้างแถบของ OverPunch
-    public string animState; // ชื่อท่าใน Animator
-    [Range(0f, 1f)] public float hitPoint = 0f; // ปล่อยดาเมจตอนท่าไปกี่ส่วน 0.4 = 40%
-    [Range(0f, 1f)] public float recoverPoint = 0.8f; // ยืนนิ่งถึงตรงนี้แล้วค่อยเดิน
+    public float cooldown = 3f; // เวลาที่ต้องรอก่อนใช้สกิลซ้ำ เป็นวินาที
+    public float radius = 3f; // ระยะ/รัศมีของสกิล
+    public int targetCount = 3; // จำนวนศัตรูสูงสุดที่สกิลเลือกโจมตี (ใช้กับ FireStorm)
+    public float coneAngle = 90f; // มุมโจมตีรูปกรวย 
+    public float hitWidth = 2.4f; // ความกว้างของพื้นที่โจมตีสำหรับสกิล OverPunch
+    public string animState; // ชื่อ Animation State ที่ต้องการให้เล่นใน Animator
+    [Range(0f, 1f)] public float hitPoint = 0f; // จังหวะที่สกิลปล่อยดาเมจ เช่น 0.4 คือ 40% ของแอนิเมชัน
+    [Range(0f, 1f)] public float recoverPoint = 0.8f; // จังหวะที่ผู้เล่นสามารถกลับมาเดินได้ระหว่างแอนิเมชัน
 
     [Header("VFX (Game Mellow)")]
-    public GameObject vfxPrefab; // เอฟเฟกต์
-    public float vfxScale = 1f;
-    public float vfxTime = 0.6f; // เล่นกี่วิ
-    public float vfxForward = 0f; // เลื่อนหน้า
-    public float vfxSide = 0f; // เลื่อนขวา (ลบ = ซ้าย)
-    public float vfxHeight = 0f; // ความสูง
-    // ให้ออกจากกระดูกไหน LastBone = ไม่ใช้
+    public GameObject vfxPrefab; // เลือกเอฟเฟกต์ที่จะใช้กับสกิล
+    public float vfxScale = 1f; // ขนาดของเอฟเฟกต์
+    public float vfxTime = 0.6f; // ระยะเวลาที่เอฟเฟกต์แสดง หน่วยเป็นวินาที
+    public float vfxForward = 0f; // เลื่อนเอฟเฟกต์ไปด้านหน้าของตัวละคร
+    public float vfxSide = 0f; // เลื่อนเอฟเฟกต์ไปด้านข้าง ค่าติดลบคือเลื่อนไปทางซ้าย
+    public float vfxHeight = 0f; // ปรับความสูงของเอฟเฟกต์
+
+    // เลือกว่าจะให้เอฟเฟกต์ออกจากกระดูกส่วนไหนของตัวละคร
+    // LastBone หมายถึงไม่ได้กำหนดกระดูกให้เอฟเฟกต์
     public HumanBodyBones vfxBone = HumanBodyBones.LastBone;
-    // หมุนเพิ่ม เอฟเฟกต์จาก Lab หันแกน X เลยต้อง -90
+
+    // ปรับองศาการหมุนของเอฟเฟกต์ ถ้าเอฟเฟกต์หันผิดทางให้ลองปรับตรงนี้
     public Vector3 vfxRotation = new Vector3(0f, -90f, 0f);
-    public bool vfxFollow; // ตามตัวผู้เล่น
+    public bool vfxFollow; // เปิดใช้งานถ้าต้องการให้เอฟเฟกต์เคลื่อนที่ตามตัวผู้เล่น
 
     [Header("Passive (StatBoost)")]
-    public StatType statType;
+    public StatType statType; // เลือกว่าสกิลติดตัวจะเพิ่มเลือด ดาเมจ หรือความเร็ว
 
     [Header("Skill Tree (แบบ Skill.nextSkills ใน week08)")]
-    public bool isStartAvailable = true; // เหมือน isAvailable ใน week8
-    public List<SkillData> nextSkills = new List<SkillData>();
+    public bool isStartAvailable = true; // กำหนดว่าสกิลนี้สามารถเลือกได้ตั้งแต่เริ่มเกมหรือไม่
+    public List<SkillData> nextSkills = new List<SkillData>(); // รายชื่อสกิลที่สามารถปลดล็อกต่อจากสกิลนี้
 
-    // สร้างสกิลตาม effect
+    // สร้างคลาสสกิลให้ตรงกับ effect ที่เลือกไว้ด้านบน
+    // ถ้าเพิ่มรูปแบบสกิลใหม่ ต้องเพิ่ม case ของสกิลนั้นตรงนี้ด้วย
     public Skill CreateSkill()
     {
         switch (effect)
@@ -65,3 +76,4 @@ public class SkillData : ScriptableObject
         }
     }
 }
+
